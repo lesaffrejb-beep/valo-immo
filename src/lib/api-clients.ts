@@ -2,7 +2,7 @@ import type { BanResult, DvfMutation, DpeResult } from "./types";
 
 const BAN_BASE = "https://api-adresse.data.gouv.fr";
 // DVF+ Cerema — open data API géolocalisée (fiable, open data Etalab)
-const DVF_CEREMA = "https://apidf-preprod.cerema.fr/dvf_opendata/geomutations/";
+const DVF_CEREMA = process.env.DVF_API_BASE || "https://apidf-preprod.cerema.fr/dvf_opendata/geomutations/";
 const DPE_BASE =
     "https://data.ademe.fr/data-fair/api/v1/datasets/dpe-v2-logements-existants/lines";
 
@@ -121,6 +121,12 @@ export async function fetchDvfMutations(params: {
         const features: Record<string, unknown>[] = data.features || [];
 
         return features
+            // Prioritize freshest transactions first before filtering & mapping
+            .sort((a, b) => {
+                const da = new Date(String((a.properties as Record<string, unknown> | undefined)?.datemut || "")).getTime();
+                const db = new Date(String((b.properties as Record<string, unknown> | undefined)?.datemut || "")).getTime();
+                return db - da;
+            })
             .map((f) => {
                 const p = (f.properties || {}) as Record<string, unknown>;
                 const libnat = String(p.libnatmut || "");

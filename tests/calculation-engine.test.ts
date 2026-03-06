@@ -122,6 +122,24 @@ describe("Calculation Engine", () => {
             expect(analyses.length).toBe(1);
             expect(analyses[0].mutation.id_mutation).toBe("3");
         });
+
+        it("should exclude transactions older than 5 years for freshness", () => {
+            const oldMutation = {
+                ...mockMutation(),
+                id_mutation: "old-1",
+                date_mutation: "2016-01-01",
+            };
+            const recentMutation = {
+                ...mockMutation(),
+                id_mutation: "new-1",
+                date_mutation: new Date().toISOString(),
+            };
+
+            const analyses = processTransactions([oldMutation, recentMutation], null);
+            expect(analyses.length).toBe(1);
+            expect(analyses[0].mutation.id_mutation).toBe("new-1");
+        });
+
     });
 
     describe("computeSynthese", () => {
@@ -146,7 +164,22 @@ describe("Calculation Engine", () => {
             const synthese = computeSynthese([], null);
             expect(synthese.prix_m2_naif_median).toBe(0);
             expect(synthese.nb_transactions).toBe(0);
+            expect(synthese.quality.sample_size_ok).toBe(false);
         });
+
+        it("should expose quality indicators in synthese", () => {
+            const analyses = [
+                analyzeTransaction({ ...mockMutation(), id_mutation: "1", surface_reelle_bati: 100, valeur_fonciere: 200000 }, [], null),
+                analyzeTransaction({ ...mockMutation(), id_mutation: "2", surface_reelle_bati: 100, valeur_fonciere: 210000 }, [], null),
+                analyzeTransaction({ ...mockMutation(), id_mutation: "3", surface_reelle_bati: 100, valeur_fonciere: 190000 }, [], null),
+            ];
+
+            const synthese = computeSynthese(analyses, mockDpe());
+            expect(synthese.quality.has_dpe).toBe(true);
+            expect(synthese.quality.sample_size_ok).toBe(true);
+            expect(typeof synthese.quality.stale_data).toBe("boolean");
+        });
+
     });
 });
 
