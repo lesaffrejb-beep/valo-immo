@@ -111,10 +111,9 @@ export async function fetchDvfMutations(params: {
     }
 
     try {
-        const res = await fetchWithTimeout(url, 8000); // 8s timeout for DVF Cerema instead of 15s
+        const res = await fetchWithTimeout(url, 8000); // 8s timeout for DVF Cerema
         if (!res.ok) {
-            console.warn(`[DVF] Cerema API returned ${res.status}`);
-            return [];
+            throw new Error(`[DVF] Cerema API returned ${res.status}`);
         }
 
         const data = await res.json();
@@ -179,8 +178,8 @@ export async function fetchDvfMutations(params: {
             })
             .filter((m): m is DvfMutation => m !== null);
     } catch (err) {
-        console.warn("[DVF] Cerema API failed:", err);
-        return [];
+        console.error("[DVF] Cerema API failed:", err);
+        throw new Error("DVF_API_FAILED");
     }
 }
 

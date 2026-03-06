@@ -38,9 +38,6 @@ export async function GET(request: Request) {
                 lat: ban.lat,
                 lon: ban.lon,
                 dist: 500,
-            }).catch((err) => {
-                console.warn("[estimate] DVF failed:", err);
-                return [];
             }),
             fetchDpe({
                 identifiant_ban: ban.id,
@@ -73,8 +70,16 @@ export async function GET(request: Request) {
         };
 
         return NextResponse.json({ success: true, data: result });
-    } catch (err) {
+    } catch (err: any) {
         console.error("[estimate]", err);
+
+        if (err.message === "DVF_API_FAILED") {
+            return NextResponse.json(
+                { success: false, error: "Le service gouvernemental DVF est actuellement indisponible ou a expiré. Veuillez réessayer dans quelques instants." },
+                { status: 502 }
+            );
+        }
+
         return NextResponse.json(
             { success: false, error: "Erreur lors de l'estimation." },
             { status: 500 }

@@ -18,9 +18,10 @@ export default function SearchBar({ onSelect, isLoading = false }: SearchBarProp
     const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const inputRef = useRef<HTMLInputElement>(null);
     const listRef = useRef<HTMLUListElement>(null);
+    const selectedRef = useRef<string>("");
 
     const fetchSuggestions = useCallback(async (q: string) => {
-        if (q.length < 3) {
+        if (q.length < 3 || q === selectedRef.current) {
             setSuggestions([]);
             setIsOpen(false);
             return;
@@ -50,6 +51,7 @@ export default function SearchBar({ onSelect, isLoading = false }: SearchBarProp
     }, [query, fetchSuggestions]);
 
     const handleSelect = (result: BanResult) => {
+        selectedRef.current = result.label;
         setQuery(result.label);
         setSuggestions([]);
         setIsOpen(false);
@@ -91,7 +93,7 @@ export default function SearchBar({ onSelect, isLoading = false }: SearchBarProp
             <div
                 className={`
                     flex items-center gap-3 rounded-2xl px-5 py-4
-                    bg-[var(--card)] border-2 border-[var(--border)]
+                    bg-card border-2 border-border
                     transition-all duration-200 shadow-sm
                     focus-within:border-[var(--primary)] focus-within:shadow-[0_0_0_4px_oklch(0.35_0.12_260_/_10%)]
                 `}
@@ -143,7 +145,7 @@ export default function SearchBar({ onSelect, isLoading = false }: SearchBarProp
                     ref={listRef}
                     id="suggestion-list"
                     role="listbox"
-                    className="absolute z-50 top-full mt-2 w-full rounded-xl border border-[var(--border)] bg-[var(--card)] shadow-xl overflow-hidden animate-fade-in-up"
+                    className="absolute z-50 top-full mt-2 w-full rounded-xl border border-border bg-card shadow-xl overflow-hidden animate-fade-in-up"
                 >
                     {suggestions.map((s, i) => (
                         <li
@@ -155,7 +157,7 @@ export default function SearchBar({ onSelect, isLoading = false }: SearchBarProp
                             className={`
                                 flex items-start gap-4 px-5 py-4 cursor-pointer transition-colors
                                 ${i === activeIndex
-                                    ? "bg-[var(--primary)]/5"
+                                    ? "bg-primary/5"
                                     : "hover:bg-[var(--muted)]/50"
                                 }
                                 ${i > 0 ? "border-t border-[var(--border)]" : ""}
