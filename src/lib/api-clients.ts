@@ -1,14 +1,8 @@
 import type { BanResult, DvfMutation, DpeResult } from "./types";
 
 const BAN_BASE = "https://api-adresse.data.gouv.fr";
-const DVF_ENDPOINTS = (
-    process.env.DVF_API_BASES ||
-    process.env.DVF_API_BASE ||
-    "https://apidf-preprod.cerema.fr/dvf_opendata/geomutations/,https://apidf.cerema.fr/dvf_opendata/geomutations/"
-)
-    .split(",")
-    .map((url) => url.trim())
-    .filter(Boolean);
+// DVF+ Cerema — open data API géolocalisée (fiable, open data Etalab)
+const DVF_CEREMA = process.env.DVF_API_BASE || "https://apidf-preprod.cerema.fr/dvf_opendata/geomutations/";
 const DPE_BASE =
     "https://data.ademe.fr/data-fair/api/v1/datasets/dpe-v2-logements-existants/lines";
 
@@ -227,6 +221,77 @@ export async function fetchDvfMutations(params: {
             lastError = err;
             console.warn(`[DVF] endpoint failed: ${baseUrl}`, err);
         }
+
+        const data = await res.json();
+        // The Cerema geomutations endpoint returns GeoJSON FeatureCollection
+        const features: Record<string, unknown>[] = data.features || [];
+
+        return features
+            // Prioritize freshest transactions first before filtering & mapping
+            .sort((a, b) => {
+                const da = new Date(String((a.properties as Record<string, unknown> | undefined)?.datemut || "")).getTime();
+                const db = new Date(String((b.properties as Record<string, unknown> | undefined)?.datemut || "")).getTime();
+                return db - da;
+            })
+            .map((f) => {
+                const p = (f.properties || {}) as Record<string, unknown>;
+                const libnat = String(p.libnatmut || "");
+                // Only keep actual sales
+                if (libnat !== "Vente" && !libnat.includes("futur d'achèvement")) return null;
+
+                const valeur = Number(p.valeurfonc) || 0;
+                if (valeur <= 0) return null;
+
+                const codtypbien = p.codtypbien;
+                const codeTypeLocal = mapCodeTypLocal(String(codtypbien || "0"));
+
+                // Only residential or dependencies
+                if (codeTypeLocal > 3) return null;
+
+                const sbati = Number(p.sbati) || 0;
+                if (codeTypeLocal < 3 && sbati <= 0) return null;
+
+                // Extract coordinates from geometry centroid (Point or Polygon)
+                let lon = 0, lat = 0;
+                const geom = f.geometry as { type: string; coordinates: unknown[] } | null;
+                if (geom?.type === "Point") {
+                    lon = (geom.coordinates as number[])[0];
+                    lat = (geom.coordinates as number[])[1];
+                } else if (geom?.type === "Polygon") {
+                    const coords = (geom.coordinates as number[][][])[0];
+                    if (coords?.length > 0) {
+                        lon = coords.reduce((s, c) => s + c[0], 0) / coords.length;
+                        lat = coords.reduce((s, c) => s + c[1], 0) / coords.length;
+                    }
+                }
+
+                const codeInsee = Array.isArray(p.l_codinsee)
+                    ? (p.l_codinsee as string[])[0] || ""
+                    : String(p.l_codinsee || "");
+
+                return {
+                    id_mutation: String(p.idopendata || p.idmutinvar || ""),
+                    date_mutation: String(p.datemut || ""),
+                    nature_mutation: libnat,
+                    valeur_fonciere: valeur,
+                    code_postal: String(p.coddep || "") + "000", // approximation
+                    code_commune: codeInsee,
+                    nom_commune: "",
+                    code_type_local: codeTypeLocal,
+                    type_local: String(p.libtypbien || ""),
+                    surface_reelle_bati: sbati,
+                    nombre_pieces_principales: 0,
+                    surface_terrain: Number(p.sterr) || 0,
+                    adresse_nom_voie: "",
+                    adresse_numero: "",
+                    longitude: lon,
+                    latitude: lat,
+                } as DvfMutation;
+            })
+            .filter((m): m is DvfMutation => m !== null);
+    } catch (err) {
+        console.error("[DVF] Cerema API failed:", err);
+        throw new Error("DVF_API_FAILED");
     }
 
     console.error("[DVF] all endpoints failed", lastError);
