@@ -1,96 +1,40 @@
-# TrueSquare - Expertise Foncière B2B
+# TrueSquare V6
 
-Bienvenue sur le dépôt officiel de **TrueSquare** (projet Valo-Immo), le moteur d'estimation immobilière nouvelle génération conçu pour les professionnels (agents immobiliers, chasseurs, experts fonciers, CGP).
+**Le moteur de valorisation premium, transparent et interactif pour les professionnels de l'immobilier.**
 
-Ce projet s'appuie sur le croisement algorithmique temps réel des données officielles de l'État (DVF et DPE) pour offrir une estimation d'une précision inégalée, habillée d'une interface de qualité premium.
+![TrueSquare Concept](https://img.shields.io/badge/Status-Beta_V6-brass?style=for-the-badge) ![Tech](https://img.shields.io/badge/Next.js-14-black?style=for-the-badge&logo=next.js) ![Styling](https://img.shields.io/badge/TailwindCSS-v3-blue?style=for-the-badge&logo=tailwindcss)
 
----
+TrueSquare est une PropTech B2B qui redonne le pouvoir à l'agent immobilier. En croisant la donnée brute irréfutable de l'État (DVF, DPE) avec l'intelligence terrain de l'expert, l'application génère des dossiers d'estimation interactifs d'un niveau de détails et de prestige inédit.
 
-## 🎯 Vision Produit & UX (Très Important pour les contributeurs / LLMs)
+## 🚀 Fonctionnalités "Big Tech Edition" (V6)
 
-L'application s'adresse à **10 personas B2B distincts** (allant de l'agent sur le terrain sur son smartphone, à l'expert dans son bureau sur grand écran). Le produit doit être **Simple, Efficace et Clair**.
+- **Transparence Absolue (DVF & DPE) :** Interrogation en temps réel des bases de données de l'État.
+- **Mode Outliers (Style Airbnb) :** Exclusion interactive des anomalies statistiques (ventes en famille, erreurs) pour une médiane pure, recalculée en live.
+- **Rapport d'Expertise Cinematic (Style Apple) :** Un mode présentation plein-écran luxueux figeant les paramètres pour l'export PDF "Private Banking".
+- **Stress-Test Acheteur (Style PayPal) :** Simulation financière ultra-rapide (Apport, Taux, Cashflow) pour démontrer la capacité d'emprunt et le rendement brut locatif.
+- **Scoring de Liquidité (Style Microsoft) :** Analyse de la rotation du parc immobilier pour statuer sur la tension du marché local et le délai de vente.
+- **Ajustements Hédonistes :** L'agent sculpte le prix en modifiant dynamiquement l'état du bien, les extérieurs et la vue.
+- **Rénovation Énergétique :** Détection d'un DPE Passoire (E, F ou G) et application automatique d'une décote travaux chiffrée.
 
-Pour concilier ces besoins extrêmes, le design repose sur le principe de **Divulgation Progressive (Progressive Disclosure)** :
+## 🛠 Stack Technique
 
-1. **Niveau 1 (Fast-Track) :** Recherche ultra-rapide (Adresse, Surface, Type). Affichage immédiat d'un prix moyen avec carte. (Cible : Terrain, Assistante).
-2. **Niveau 2 (Affiner) :** Modificateurs visuels (DPE, état, étage) permettant au prix de s'ajuster en temps réel devant le client. (Cible : Négociateur).
-3. **Niveau 3 (Data Mode) :** Accès transparent aux données brutes DVF pour prouver le calcul. (Cible : Expert, Chasseur).
-4. **Niveau 4 (Livrable) :** Génération d'un rapport PDF premium. (Cible : Mandataire, CGP).
+- **Framework :** Next.js 14 (App Router)
+- **Langage :** TypeScript
+- **Styling :** Tailwind CSS + Variables CSS complexes (Thème Premium clair: Ivoire, Laiton/Brass, Navy)
+- **Composants :** UI ultra-légère (from scratch)
+- **Data (API) :** API data.gouv.fr
 
-### 🎨 Design System & Esthétique
-
-- **Niveau d'exigence :** Dribbble / Awwwards vibes 2025-2026.
-- **Palette :** Professionnelle, claire et premium (Navy, White, nuances de gris, gradients subtils).
-- **Interactions :** Micro-animations soignées (framer-motion / transitions pures), feedback immédiat.
-- **Règle absolue :** Aucune couleur ou espacement "en dur" (hardcodé). Utilisez toujours les CSS variables / tokens Tailwind.
-
-> 🤖 **POUR LES FUTURS LLM :** Avant toute modification UI, vous **devez** prendre connaissance des instructions définies ci-dessus et respecter l'architecture en place. Lisez le Design System et ne rajoutez pas de classes utilitaires sauvages si un token existe.
-
----
-
-## 🏗️ Architecture Technique
-
-TrueSquare est construit sur une stack moderne, optimisée pour la vitesse et la scalabilité Serverless :
-
-- **Framework :** Next.js 16 (App Router)
-- **Frontend :** React 19, Tailwind CSS v4, composants Shadcn UI, Lucide Icons.
-- **Backend (BFF) :** Route Handlers Next.js avec validation stricte via **Zod**.
-- **Data Fetching :** Data Caching natif Next.js (cache TTL 24h) pour éviter le *Rate Limiting* des APIs gouvernementales (Cerema / Ademe) et contrer les attaques DoS.
-- **Tests :** Vitest pour la couverture des modèles financiers.
-
----
-
-## 🚀 Le Moteur de Calcul (`calculation-engine.ts`)
-
-Le cœur métier de TrueSquare réside dans son algorithme d'analyse transactionnelle certifié :
-
-1. Les APIs frontend interrogent la **BAN (Base Adresse Nationale)** pour le géocodage.
-2. Le Backend interroge en parallèle l'API Cerema (DVF) sur un rayon défini et l'API Ademe (DPE) via l'identifiant BAN.
-3. L'algorithme exclut le prix forfaitaire des annexes (ex: 15 000 € par garage).
-4. Le calcul de la surface pondérée donne systématiquement l'avantage à la **Surface Habitable du DPE** si ce dernier est récent, contrecarrant les variations cadastre vs terrain.
-5. Une synthèse robuste (Médiane Naïve vs Consolidée, Indice de confiance algorithmique) est restituée au Front-End via des API sécurisées.
-
----
-
-## 🛠️ Installation et Lancement Local
-
-**Prérequis:** `Node.js >= 20` et `npm` (ou `pnpm` / `yarn`).
+## 📦 Lancement Local
 
 ```bash
-# 1. Cloner le repo
-git clone <url-du-repo> valo-immo
-cd valo-immo
-
-# 2. Installer les dépendances
+git clone https://github.com/votre-nom/true-square.git
+cd true-square
 npm install
-
-# 3. Lancer le serveur de développement (Port 3000)
 npm run dev
 ```
 
----
+Rendez-vous sur [http://localhost:3000](http://localhost:3000)
 
-## 🛡️ Sécurité & Fiabilité
+## 🗺 Vision & Roadmap
 
-Suite au dernier audit de due diligence, les standards B2B suivants sont appliqués :
-
-- **Validation absolue des payloads** via `zod` (`/api/dvf`, `/api/dpe`, `/api/estimate`, `/api/geocode`).
-- **Prévention d'attaque DoS** : Un proxy de cache serveur retient les résultats DVF/DPE pendant 24h, protégeant nos propres serveurs de timeout.
-- **Lazy Loading (UX)** : La map, les graphes et panneaux de résultats complexes utilisent le Chunk Splitting (`next/dynamic`) pour alléger la Landing Page critique.
-- **Qualité** : Pour tester mathématiquement le moteur métier (zéro régression) :
-
-  ```bash
-  npx vitest run
-  ```
-
----
-
-## 📦 Déploiement Vercel
-
-Le projet est calibré pour être déployé "Zero-config" sur Vercel :
-
-1. Liez votre compte GitHub à Vercel.
-2. Sélectionnez le projet `valo-immo`.
-3. Cliquez sur **Deploy**.
-
-> *Note : Aucune base de données locale n'est requise. Toute la puissance réside dans l'agrégation "Edge" des données d'État.*
+Découvrez la philosophie du projet dans le document [L'ÂME DE TRUESQUARE](./L_AME.md) et consultez le futur de l'application dans la [ROADMAP](./ROADMAP.md).

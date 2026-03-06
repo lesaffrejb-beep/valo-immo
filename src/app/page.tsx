@@ -7,7 +7,7 @@ import dynamic from "next/dynamic";
 import type { BanResult, EstimationResult } from "@/lib/types";
 
 const ResultPanel = dynamic(() => import("@/components/ResultPanel"), {
-  loading: () => <div className="p-12 text-center text-[var(--muted-foreground)] flex items-center justify-center gap-2"><Loader2 className="animate-spin h-5 w-5" /> Chargement du module...</div>,
+  loading: () => <div className="p-12 text-center text-[var(--muted-foreground)] flex items-center justify-center gap-2"><Loader2 className="animate-spin h-5 w-5" /> Initialisation de l'environnement d'expertise...</div>,
 });
 
 const FAQ = dynamic(() => import("@/components/FAQ"));
@@ -143,7 +143,7 @@ export default function Home() {
                 <Info className="h-6 w-6" />
               </div>
               <div className="space-y-2">
-                <p className="text-lg font-serif text-foreground">Échec de l&apos;expertise</p>
+                <p className="text-lg font-serif text-foreground">Avis de Valeur Impossible</p>
                 <p className="text-sm font-medium text-muted-foreground max-w-sm mx-auto">{state.message}</p>
               </div>
             </div>
@@ -163,9 +163,9 @@ export default function Home() {
         <section className="py-32 border-t border-border bg-secondary/20 relative overflow-hidden">
           <div className="max-w-5xl mx-auto px-6 relative z-10">
             <div className="text-center mb-16 space-y-4">
-              <h3 className="text-3xl font-serif text-foreground tracking-tight">Méthodologie & Transparence</h3>
+              <h3 className="text-3xl font-serif text-foreground tracking-tight">Rigueur & Transparence Algorithmique</h3>
               <p className="text-muted-foreground max-w-xl mx-auto font-medium opacity-70">
-                Tout comprendre sur notre algorithme de purification des données cadastrales.
+                L'intégralité de notre méthodologie d'extraction et de fiabilisation des données DVF.
               </p>
             </div>
             <FAQ />

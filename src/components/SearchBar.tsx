@@ -114,7 +114,7 @@ export default function SearchBar({ onSelect, isLoading = false }: SearchBarProp
                     onKeyDown={handleKeyDown}
                     onBlur={handleBlur}
                     onFocus={() => suggestions.length > 0 && setIsOpen(true)}
-                    placeholder="Entrez une adresse… ex : 15 rue de la Paix, Paris"
+                    placeholder="Saisissez l'adresse du bien cible..."
                     className="flex-1 bg-transparent text-[var(--foreground)] placeholder:text-[var(--muted-foreground)] text-lg font-medium outline-none"
                     aria-label="Rechercher une adresse"
                     aria-autocomplete="list"
