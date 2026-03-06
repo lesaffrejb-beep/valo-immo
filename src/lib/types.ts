@@ -81,6 +81,11 @@ export interface EstimationResult {
         nb_transactions: number;
         surface_reference: number;
         confiance: number; // 0–1
+        quality: {
+            stale_data: boolean;
+            sample_size_ok: boolean;
+            has_dpe: boolean;
+        };
     };
 }
 

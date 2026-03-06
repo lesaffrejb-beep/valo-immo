@@ -35,7 +35,12 @@ Consolider la donnée pour donner encore plus d'armes à l'agent avant sa visite
 - *Besoin :* Renforcer le côté "Expert Foncier".
 - *Feature :* Une carte interactive (Vue Satellite / Plan) affichant le bien estimé et plaçant de manière géolocalisée l'ensemble des transactions de l'échantillon DVF, avec filtres interactifs.
 
-### 3. CRM & Sauvegarde de Dossiers
+### 3. Fiabilisation du moteur de calcul (Complété)
+
+- *Besoin :* Éviter les erreurs de chiffres et rendre l'analyse défendable face à un client exigeant.
+- *Feature :* Filtre automatique des transactions trop anciennes (5 ans), garde-fous mathématiques sur les arrondis, et indicateurs de qualité (`stale_data`, `sample_size_ok`, `has_dpe`) pour signaler la robustesse de chaque estimation.
+
+### 4. CRM & Sauvegarde de Dossiers
 
 - *Besoin :* L'agent veut conserver son travail.
 - *Feature :* Possibilité de sauvegarder une *SyntheseCard* dans un compte utilisateur, générer un lien partageable avec expiration (pour créer un sentiment d'urgence chez l'acheteur).

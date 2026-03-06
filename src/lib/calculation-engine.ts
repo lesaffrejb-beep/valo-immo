@@ -14,6 +14,8 @@ const WEIGHTS = {
     garage_forfait: 15000, // € — valeur forfaitaire déduite
 } as const;
 
+const MAX_TRANSACTION_AGE_YEARS = 5;
+
 /* ─── Helpers ─── */
 
 /** Median of a numeric array */
@@ -28,6 +30,7 @@ function median(arr: number[]): number {
 
 /** Round to 2 decimal places */
 function round2(n: number): number {
+    if (!Number.isFinite(n)) return 0;
     return Math.round(n * 100) / 100;
 }
 
@@ -39,11 +42,21 @@ function isGarage(mutation: DvfMutation): boolean {
     );
 }
 
+function isRecentEnough(dateMutation: string): boolean {
+    const txDate = new Date(dateMutation);
+    if (Number.isNaN(txDate.getTime())) return false;
+
+    const oldestAllowed = new Date();
+    oldestAllowed.setFullYear(oldestAllowed.getFullYear() - MAX_TRANSACTION_AGE_YEARS);
+
+    return txDate >= oldestAllowed;
+}
+
 /* ─── Core Engine ─── */
 
 /**
  * Analyse une transaction DVF en croisant avec les données DPE.
- * 
+ *
  * @param principal - Le lot principal (maison / appartement)
  * @param dependances - Les lots dépendants de la même mutation
  * @param dpe - Le DPE associé (null si non trouvé)
@@ -138,6 +151,7 @@ export function processTransactions(
         for (const principal of principaux) {
             if (principal.surface_reelle_bati <= 0) continue;
             if (principal.valeur_fonciere <= 0) continue;
+            if (!isRecentEnough(principal.date_mutation)) continue;
 
             analyses.push(analyzeTransaction(principal, dependances, dpe));
         }
@@ -168,6 +182,11 @@ export function computeSynthese(
             nb_transactions: 0,
             surface_reference: dpe?.surface_habitable_logement || 0,
             confiance: 0,
+            quality: {
+                stale_data: true,
+                sample_size_ok: false,
+                has_dpe: !!dpe,
+            },
         };
     }
 
@@ -192,7 +211,8 @@ export function computeSynthese(
     const newestDate = new Date(analyses[0].mutation.date_mutation);
     const oneYearAgo = new Date();
     oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
-    if (newestDate > oneYearAgo) confiance += 0.1;
+    const isFresh = newestDate > oneYearAgo;
+    if (isFresh) confiance += 0.1;
 
     confiance = round2(Math.min(confiance, 1));
 
@@ -205,5 +225,10 @@ export function computeSynthese(
             dpe?.surface_habitable_logement ||
             round2(median(analyses.map((a) => a.weighted_surface.surface_habitable))),
         confiance,
+        quality: {
+            stale_data: !isFresh,
+            sample_size_ok: analyses.length >= 3,
+            has_dpe: !!dpe,
+        },
     };
 }
