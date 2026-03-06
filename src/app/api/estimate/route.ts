@@ -8,6 +8,10 @@ const estimateQuerySchema = z.object({
     adresse: z.string().min(5, "L'adresse doit faire au moins 5 caractères.").max(150, "Adresse trop longue."),
 });
 
+function isErrorWithMessage(error: unknown): error is { message: string } {
+    return typeof error === "object" && error !== null && "message" in error;
+}
+
 export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const parsed = estimateQuerySchema.safeParse(Object.fromEntries(searchParams));
@@ -70,10 +74,10 @@ export async function GET(request: Request) {
         };
 
         return NextResponse.json({ success: true, data: result });
-    } catch (err: any) {
+    } catch (err: unknown) {
         console.error("[estimate]", err);
 
-        if (err.message === "DVF_API_FAILED") {
+        if (isErrorWithMessage(err) && err.message === "DVF_API_FAILED") {
             return NextResponse.json(
                 { success: false, error: "Le service gouvernemental DVF est actuellement indisponible ou a expiré. Veuillez réessayer dans quelques instants." },
                 { status: 502 }

@@ -1,13 +1,13 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Building2, ChevronRight, Github, Loader2, Info } from "lucide-react";
+import { Building2, Loader2, Info } from "lucide-react";
 import SearchBar from "@/components/SearchBar";
 import dynamic from "next/dynamic";
 import type { BanResult, EstimationResult } from "@/lib/types";
 
 const ResultPanel = dynamic(() => import("@/components/ResultPanel"), {
-  loading: () => <div className="p-12 text-center text-[var(--muted-foreground)] flex items-center justify-center gap-2"><Loader2 className="animate-spin h-5 w-5" /> Initialisation de l'environnement d'expertise...</div>,
+  loading: () => <div className="p-12 text-center text-[var(--muted-foreground)] flex items-center justify-center gap-2"><Loader2 className="animate-spin h-5 w-5" /> Initialisation de l&apos;environnement d&apos;expertise...</div>,
 });
 
 const FAQ = dynamic(() => import("@/components/FAQ"));
@@ -165,7 +165,7 @@ export default function Home() {
             <div className="text-center mb-16 space-y-4">
               <h3 className="text-3xl font-serif text-foreground tracking-tight">Rigueur & Transparence Algorithmique</h3>
               <p className="text-muted-foreground max-w-xl mx-auto font-medium opacity-70">
-                L'intégralité de notre méthodologie d'extraction et de fiabilisation des données DVF.
+                L&apos;intégralité de notre méthodologie d&apos;extraction et de fiabilisation des données DVF.
               </p>
             </div>
             <FAQ />

@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { Calculator, Percent, Coins, ChevronRight, CheckCircle2, ChevronDown, ChevronUp } from "lucide-react";
+import { useState } from "react";
+import { Calculator, Percent, Coins, CheckCircle2, ChevronDown, ChevronUp } from "lucide-react";
 
 interface CommercialisationStrategyProps {
     valeurNetteEstimee: number;
@@ -50,7 +50,7 @@ export default function CommercialisationStrategy({ valeurNetteEstimee }: Commer
                     </div>
                     <div>
                         <h3 className="text-base font-bold text-foreground print:text-black">Stratégie de Commercialisation</h3>
-                        <p className="text-xs font-medium text-muted-foreground mt-0.5 print:text-gray-500">Calcul des Honoraires & Optimisation F.A.I (Frais d'Agence Inclus)</p>
+                        <p className="text-xs font-medium text-muted-foreground mt-0.5 print:text-gray-500">Calcul des Honoraires & Optimisation F.A.I (Frais d&apos;Agence Inclus)</p>
                     </div>
                 </div>
                 <div className="flex items-center gap-3">
@@ -65,7 +65,7 @@ export default function CommercialisationStrategy({ valeurNetteEstimee }: Commer
                     {/* Left: Interactive Controls (Hidden in Print for cleaner look if requested, but we'll show values) */}
                     <div className="lg:col-span-5 space-y-6 flex flex-col justify-center print:hidden">
                         <div>
-                            <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-3">Honoraires d'Agence</p>
+                            <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-3">Honoraires d&apos;Agence</p>
                             <div className="flex bg-background border border-border rounded-lg p-1 mb-4">
                                 <button
                                     onClick={() => setCommissionType("percentage")}
@@ -132,7 +132,7 @@ export default function CommercialisationStrategy({ valeurNetteEstimee }: Commer
                             </div>
                             <div className="flex justify-between items-center py-2 border-t border-border/50 print:border-black/20">
                                 <span className="text-sm font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-2 print:text-gray-500">
-                                    <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground print:bg-gray-500"></span> Honoraires d'Agence {commissionType === "percentage" ? `(${commissionRate}%)` : "(Forfait)"}
+                                    <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground print:bg-gray-500"></span> Honoraires d&apos;Agence {commissionType === "percentage" ? `(${commissionRate}%)` : "(Forfait)"}
                                 </span>
                                 <span className="font-data text-xl font-bold text-foreground print:text-black">+ {honoraires.toLocaleString("fr-FR")} €</span>
                             </div>
