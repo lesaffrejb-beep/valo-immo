@@ -5,6 +5,7 @@ import type { EstimationResult } from "@/lib/types";
 import { TrendingUp, TrendingDown, Minus, ShieldCheck, Info, FileSearch, SlidersHorizontal, Drill, Sparkles, Eye, TreePine, Calculator, Percent, Building, Coins, Printer, X, MapPin, Landmark, Wallet, Flame, Snowflake, Droplets } from "lucide-react";
 import AgentBriefing from "./AgentBriefing";
 import CommercialisationStrategy from "./CommercialisationStrategy";
+import { calculateAnnualDebtCost, calculateDebtYield, calculateMonthlyPayment, getUsuryStatus } from "@/lib/finance";
 
 /* ─── DPE Étiquette Badge ─── */
 const DPE_COLORS: Record<string, { bg: string; text: string }> = {
@@ -173,18 +174,18 @@ export default function SyntheseCard({ result }: { result: EstimationResult }) {
     const [apport, setApport] = useState<number>(30000);
     const [taux, setTaux] = useState<number>(3.8);
     const [duree, setDuree] = useState<number>(25);
+    const [tauxUsure, setTauxUsure] = useState<number>(5.1);
 
     const capitalEmprunte = Math.max(0, finalNetPrice + fraisNotaireAncien - apport);
-    const tauxMensuel = (taux / 100) / 12;
-    const nbMois = duree * 12;
-    const mensualite = capitalEmprunte > 0 && tauxMensuel > 0
-        ? (capitalEmprunte * tauxMensuel) / (1 - Math.pow(1 + tauxMensuel, -nbMois))
-        : capitalEmprunte > 0 && tauxMensuel === 0
-            ? capitalEmprunte / nbMois
-            : 0;
+    const mensualite = calculateMonthlyPayment(capitalEmprunte, taux, duree);
+    const tauxStress = Math.min(taux + 1, tauxUsure);
+    const mensualiteStress = calculateMonthlyPayment(capitalEmprunte, tauxStress, duree);
+    const usuryStatus = getUsuryStatus(taux, tauxUsure);
 
     const loyerMensuel = loyerAnnuel / 12;
     const cashflowBrut = loyerMensuel - mensualite;
+    const cashflowStress = loyerMensuel - mensualiteStress;
+    const rendementDette = calculateDebtYield(loyerAnnuel, calculateAnnualDebtCost(mensualite));
 
     // Presentation Mode State
     const [presentationMode, setPresentationMode] = useState(false);
@@ -595,7 +596,7 @@ export default function SyntheseCard({ result }: { result: EstimationResult }) {
                                 <span className="text-[10px] font-bold text-white bg-primary px-2 py-0.5 rounded-full whitespace-nowrap hidden sm:inline-block">Simulateur</span>
                             </div>
 
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+                            <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-6">
                                 <div className="flex flex-col gap-2">
                                     <label className="text-xs font-semibold text-muted-foreground">Apport Personnel</label>
                                     <div className="flex items-center gap-1 bg-card px-3 py-2 rounded-lg border border-border/50 focus-within:ring-1 focus-within:ring-primary transition-all">
@@ -624,6 +625,20 @@ export default function SyntheseCard({ result }: { result: EstimationResult }) {
                                     </div>
                                 </div>
                                 <div className="flex flex-col gap-2">
+                                    <label className="text-xs font-semibold text-muted-foreground">Taux d&apos;usure (trim.)</label>
+                                    <div className="flex items-center gap-1 bg-card px-3 py-2 rounded-lg border border-border/50 focus-within:ring-1 focus-within:ring-primary transition-all">
+                                        <ShieldCheck className="h-3.5 w-3.5 text-muted-foreground" />
+                                        <input
+                                            type="number"
+                                            step="0.1"
+                                            value={tauxUsure}
+                                            onChange={(e) => setTauxUsure(Number(e.target.value) || 0)}
+                                            className="w-full bg-transparent text-sm font-bold text-foreground outline-none text-right appearance-none"
+                                        />
+                                        <span className="text-xs text-muted-foreground font-medium">%</span>
+                                    </div>
+                                </div>
+                                <div className="flex flex-col gap-2">
                                     <label className="text-xs font-semibold text-muted-foreground">Durée du Crédit</label>
                                     <div className="flex items-center bg-card rounded-lg border border-border/50 p-1">
                                         <button onClick={() => setDuree(20)} className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-colors ${duree === 20 ? 'bg-primary text-white' : 'text-muted-foreground hover:bg-muted'}`}>20 ans</button>
@@ -632,14 +647,40 @@ export default function SyntheseCard({ result }: { result: EstimationResult }) {
                                 </div>
                             </div>
 
-                            <div className="flex items-center justify-between bg-background border border-border p-4 rounded-xl">
-                                <div>
-                                    <p className="text-[10px] uppercase font-bold text-muted-foreground mb-1">Mensualité Estimée</p>
-                                    <p className="text-xs font-medium text-muted-foreground">Pour emprunter {Math.round(capitalEmprunte).toLocaleString("fr-FR")} €</p>
+                            <div className="space-y-3">
+                                <div className="flex items-center justify-between bg-background border border-border p-4 rounded-xl">
+                                    <div>
+                                        <p className="text-[10px] uppercase font-bold text-muted-foreground mb-1">Mensualité Estimée</p>
+                                        <p className="text-xs font-medium text-muted-foreground">Pour emprunter {Math.round(capitalEmprunte).toLocaleString("fr-FR")} €</p>
+                                    </div>
+                                    <div className="flex items-baseline gap-1.5">
+                                        <span className="font-data text-3xl font-black text-foreground">{Math.round(mensualite).toLocaleString("fr-FR")}</span>
+                                        <span className="text-lg font-serif italic text-muted-foreground">€/mois</span>
+                                    </div>
                                 </div>
-                                <div className="flex items-baseline gap-1.5">
-                                    <span className="font-data text-3xl font-black text-foreground">{Math.round(mensualite).toLocaleString("fr-FR")}</span>
-                                    <span className="text-lg font-serif italic text-muted-foreground">€/mois</span>
+
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                    <div className="bg-background border border-border rounded-xl p-3">
+                                        <p className="text-[10px] uppercase font-bold text-muted-foreground mb-1">Conformité usure</p>
+                                        <p className={`text-sm font-bold ${usuryStatus === 'ok' ? 'text-success' : usuryStatus === 'warning' ? 'text-warning' : 'text-destructive'}`}>
+                                            {usuryStatus === "ok" ? "Conforme" : usuryStatus === "warning" ? "Zone de vigilance" : "Non finançable"}
+                                        </p>
+                                    </div>
+                                    <div className="bg-background border border-border rounded-xl p-3">
+                                        <p className="text-[10px] uppercase font-bold text-muted-foreground mb-1">Mensualité stress (+1 pt)</p>
+                                        <p className="text-sm font-bold text-foreground">{Math.round(mensualiteStress).toLocaleString("fr-FR")} €/mois</p>
+                                    </div>
+                                    <div className="bg-background border border-border rounded-xl p-3">
+                                        <p className="text-[10px] uppercase font-bold text-muted-foreground mb-1">Rendement après dette</p>
+                                        <p className={`text-sm font-bold ${rendementDette >= 0 ? 'text-success' : 'text-destructive'}`}>{rendementDette.toFixed(1)}%</p>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center justify-between bg-background border border-border p-4 rounded-xl">
+                                    <p className="text-xs font-medium text-muted-foreground">Cashflow en stress-test (taux {tauxStress.toFixed(1)}%)</p>
+                                    <span className={`font-data font-bold text-lg ${cashflowStress >= 0 ? 'text-success' : 'text-destructive'}`}>
+                                        {cashflowStress >= 0 ? '+' : ''}{cashflowStress.toFixed(0)} €/mois
+                                    </span>
                                 </div>
                             </div>
                         </div>
@@ -732,5 +773,4 @@ export default function SyntheseCard({ result }: { result: EstimationResult }) {
         </div>
     );
 }
-
 
