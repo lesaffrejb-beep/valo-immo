@@ -8,10 +8,6 @@ const estimateQuerySchema = z.object({
     adresse: z.string().min(5, "L'adresse doit faire au moins 5 caractères.").max(150, "Adresse trop longue."),
 });
 
-function isErrorWithMessage(error: unknown): error is { message: string } {
-    return typeof error === "object" && error !== null && "message" in error;
-}
-
 export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const parsed = estimateQuerySchema.safeParse(Object.fromEntries(searchParams));
@@ -36,12 +32,18 @@ export async function GET(request: Request) {
         }
         const ban = banResults[0];
 
+        let dvfUnavailable = false;
+
         // ─── Step 2 & 3: DVF + DPE in parallel ───
         const [mutations, dpeResults] = await Promise.all([
             fetchDvfMutations({
                 lat: ban.lat,
                 lon: ban.lon,
                 dist: 500,
+            }).catch((err) => {
+                dvfUnavailable = true;
+                console.warn("[estimate] DVF failed, fallback to empty:", err);
+                return [];
             }),
             fetchDpe({
                 identifiant_ban: ban.id,
@@ -65,24 +67,26 @@ export async function GET(request: Request) {
         const transactions = processTransactions(mutations, dpe);
         const synthese = computeSynthese(transactions, dpe);
 
+        const warnings: string[] = [];
+
+        if (dvfUnavailable) {
+            warnings.push("Les serveurs DVF sont temporairement indisponibles. L'estimation est affichée avec des données partielles.");
+        } else if (transactions.length === 0) {
+            warnings.push("Aucune transaction DVF exploitable n'a été trouvée dans ce périmètre. Élargissez la zone ou vérifiez l'adresse.");
+        }
+
         const result: EstimationResult = {
             adresse: ban.label,
             ban,
             dpe,
             transactions,
             synthese,
+            warnings: warnings.length > 0 ? warnings : undefined,
         };
 
         return NextResponse.json({ success: true, data: result });
     } catch (err: unknown) {
         console.error("[estimate]", err);
-
-        if (isErrorWithMessage(err) && err.message === "DVF_API_FAILED") {
-            return NextResponse.json(
-                { success: false, error: "Le service gouvernemental DVF est actuellement indisponible ou a expiré. Veuillez réessayer dans quelques instants." },
-                { status: 502 }
-            );
-        }
 
         return NextResponse.json(
             { success: false, error: "Erreur lors de l'estimation." },

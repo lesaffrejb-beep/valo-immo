@@ -35,6 +35,41 @@ npm run dev
 
 Rendez-vous sur [http://localhost:3000](http://localhost:3000)
 
+
+## 🧠 Comment fonctionne le moteur de calcul (version humaine)
+
+Voici le calcul expliqué simplement, pour quelqu'un d'extérieur :
+
+1. **On trouve l'adresse exacte** avec la BAN (Base Adresse Nationale).
+2. **On récupère les ventes DVF autour du bien** (rayon local) et le DPE du bien si disponible.
+3. **On garde uniquement les ventes pertinentes et récentes** (biens résidentiels, prix/surface valides, et transactions des 5 dernières années).
+4. **On calcule 2 prix au m²** :
+   - `naïf` = prix / surface DVF brute
+   - `corrigé` = prix ajusté (ex: garage retiré en forfait) / surface pondérée
+5. **On prend la médiane** pour éviter qu'une vente extrême fausse tout le résultat.
+6. **On calcule un score de confiance** basé sur : présence DPE, nombre de comparables, fraîcheur des ventes.
+
+Résultat : un prix lisible, argumentable, et moins sensible aux anomalies de terrain.
+
+## ✅ Fiabilisation mise en place
+
+- **Filtre de fraîcheur** : les mutations trop anciennes (> 5 ans) sont exclues du moteur.
+- **Garde-fous mathématiques** : arrondis robustes (`NaN` / `Infinity` neutralisés).
+- **Signal qualité intégré** dans la synthèse API :
+  - `stale_data` (donnée potentiellement vieillissante),
+  - `sample_size_ok` (échantillon statistiquement acceptable),
+  - `has_dpe` (présence de source énergétique fiable).
+
+## 🔐 Ce qu'on pourra ajouter ensuite (backend)
+
+Pour aller encore plus loin sur la fiabilité et la protection de la logique métier :
+
+- Déporter 100% du moteur côté backend (API privée + signatures de version de calcul).
+- Ajouter des **tests de non-régression métier** (fixtures réelles d'adresses + résultats attendus figés).
+- Journaliser les variations de résultats entre versions de moteur (audit).
+- Ajouter une stratégie de **fallback multi-source DVF** (si un endpoint est indisponible).
+- Exposer une "fiche de preuve" par estimation (sources, date de fraîcheur, règles appliquées).
+
 ## 🗺 Vision & Roadmap
 
 Découvrez la philosophie du projet dans le document [L'ÂME DE TRUESQUARE](./L_AME.md) et consultez le futur de l'application dans la [ROADMAP](./ROADMAP.md).
