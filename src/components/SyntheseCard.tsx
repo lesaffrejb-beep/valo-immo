@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { EstimationResult } from "@/lib/types";
-import { TrendingUp, TrendingDown, Minus, ShieldCheck, Info, FileSearch, SlidersHorizontal, Drill, Sparkles, Eye, TreePine, Calculator, Percent, Building, Coins, Printer, X, MapPin, Landmark, Wallet, Flame, Snowflake, Droplets, Activity } from "lucide-react";
+import { TrendingUp, TrendingDown, Minus, ShieldCheck, Info, FileSearch, SlidersHorizontal, Drill, Sparkles, Eye, TreePine, Calculator, Percent, Building, Coins, Printer, X, MapPin, Landmark, Wallet, Flame, Snowflake, Droplets } from "lucide-react";
 import AgentBriefing from "./AgentBriefing";
 import CommercialisationStrategy from "./CommercialisationStrategy";
 
@@ -485,7 +485,7 @@ export default function SyntheseCard({ result }: { result: EstimationResult }) {
                                     </p>
 
                                     <div className="mt-6 pt-4 border-t border-destructive/10">
-                                        <p className="text-[10px] uppercase font-bold text-destructive/60 mb-1">Valeur Nette Vendeur ("Net Vendeur Post-Travaux")</p>
+                                        <p className="text-[10px] uppercase font-bold text-destructive/60 mb-1">Valeur Nette Vendeur (&quot;Net Vendeur Post-Travaux&quot;)</p>
                                         <span className="font-data text-2xl font-black text-foreground">
                                             {Math.round(finalNetPrice).toLocaleString("fr-FR")} <span className="text-sm font-serif italic text-muted-foreground">€</span>
                                         </span>

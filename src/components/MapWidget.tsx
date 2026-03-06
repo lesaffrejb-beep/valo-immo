@@ -1,15 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { MapContainer, TileLayer, Marker, Popup, CircleMarker, useMap } from "react-leaflet";
+import { useEffect } from "react";
+import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import type { EstimationResult } from "@/lib/types";
-import { Building, MapPin, Search } from "lucide-react";
-import { renderToString } from "react-dom/server";
 
 // Fix default icon issue with Leaflet in Next.js
-delete (L.Icon.Default.prototype as any)._getIconUrl;
+delete (L.Icon.Default.prototype as L.Icon.DefaultPrototype)._getIconUrl;
 L.Icon.Default.mergeOptions({
     iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",
     iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png",
@@ -50,18 +48,6 @@ function ChangeView({ center }: { center: [number, number] }) {
 
 export default function MapWidget({ result, excludedIds, onToggleExclusion }: { result: EstimationResult, excludedIds?: Set<string>, onToggleExclusion?: (id: string) => void }) {
     const targetCenter: [number, number] = [result.ban.lat, result.ban.lon];
-    const [isMounted, setIsMounted] = useState(false);
-
-    useEffect(() => {
-        setIsMounted(true);
-    }, []);
-
-    if (!isMounted) {
-        return <div className="w-full h-[400px] rounded-2xl bg-muted/30 animate-pulse border border-border flex items-center justify-center">
-            <p className="text-sm font-medium text-muted-foreground">Chargement de la carte...</p>
-        </div>;
-    }
-
     return (
         <div className="w-full h-[400px] rounded-2xl overflow-hidden border border-border bg-card shadow-sm relative z-0">
             <MapContainer

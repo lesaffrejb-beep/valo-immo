@@ -91,7 +91,7 @@ export default function ResultPanel({ result }: { result: EstimationResult }) {
                                     .slice(0, 10) // Analyser un sous-ensemble plus large pour le filtrage
                                     .filter(t => !excludedIds.has(t.mutation.id_mutation || `${t.mutation.date_mutation}_${t.mutation.valeur_fonciere}`))
                                     .slice(0, 5) // Garder les 5 meilleures références actives
-                                    .map((t, idx) => {
+                                    .map((t) => {
                                         const prixM2 = t.mutation.surface_reelle_bati ? Math.round(t.mutation.valeur_fonciere / t.mutation.surface_reelle_bati) : null;
                                         const isHouse = t.mutation.type_local?.toLowerCase() === "maison";
                                         const txId = t.mutation.id_mutation || `${t.mutation.date_mutation}_${t.mutation.valeur_fonciere}`;

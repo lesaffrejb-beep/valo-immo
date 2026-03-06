@@ -89,7 +89,7 @@ export default function SearchBar({ onSelect, isLoading = false }: SearchBarProp
     const showSpinner = isFetching || isLoading;
 
     return (
-        <div className="relative w-full max-w-2xl mx-auto" role="combobox" aria-expanded={isOpen} aria-haspopup="listbox">
+        <div className="relative w-full max-w-2xl mx-auto" role="combobox" aria-expanded={isOpen} aria-haspopup="listbox" aria-controls="suggestion-list">
             <div
                 className={`
                     flex items-center gap-3 rounded-2xl px-5 py-4
