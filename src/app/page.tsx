@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Building2, Loader2, Info } from "lucide-react";
+import { Building2, Loader2, Info, BarChart3 } from "lucide-react";
 import SearchBar from "@/components/SearchBar";
 import dynamic from "next/dynamic";
 import type { BanResult, EstimationResult } from "@/lib/types";
@@ -64,6 +64,13 @@ export default function Home() {
               </span>
             </div>
           </div>
+
+          <a
+            href="/agence"
+            className="inline-flex items-center gap-2 rounded-full border border-border px-3 py-2 text-xs font-semibold text-muted-foreground hover:text-foreground hover:border-primary/40 transition-colors"
+          >
+            <BarChart3 className="h-4 w-4" /> Dashboard Agence
+          </a>
         </div>
       </header>
 
