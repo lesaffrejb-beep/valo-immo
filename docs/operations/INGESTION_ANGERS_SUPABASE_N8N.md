@@ -1,14 +1,16 @@
-# Ingestion géospatiale Angers (Supabase + n8n) — Guide exécutable
+# Ingestion géospatiale Angers (Supabase + Next.js Cron) — Guide exécutable
 
-Ce document est le mode opératoire **humain + LLM friendly** pour charger les datasets hyper-locaux d'Angers dans Supabase/PostGIS.
+> Décision produit: **on retire n8n du runbook principal** pour simplifier l'ops et rester aligné avec la stack du projet.
+
+Ce document est le mode opératoire **humain + LLM friendly** pour charger automatiquement les datasets hyper-locaux d'Angers dans Supabase/PostGIS.
 
 ## 1) Ce qui est déjà fait dans le repo
 
 - Schéma SQL consolidé (tables, index, RPC géospatiale) : `database/schema.sql`.
-- Script d'ingestion copiable-collable (UPSERT + helpers GeoJSON) : `database/ingestion_angers_data.sql`.
-- Template de workflow n8n : `workflows/n8n/angers_geo_ingestion_template.json`.
-- Requêtes SQL n8n prêtes à coller (par table) : `database/ingestion_angers_n8n_queries.sql`.
-- Consommation applicative côté API : `src/lib/hyperlocal.ts` + enrichissement de `/api/estimate`.
+- Script SQL d'exemple (helpers + fausses données de test) : `database/ingestion_angers_data.sql`.
+- Script SQL production pour cron API : `database/ingestion_angers_cron.sql`.
+- API Route cron sécurisée : `src/app/api/cron/ingest-angers-data/route.ts`.
+- Planification Vercel Cron hebdomadaire : `vercel.json`.
 
 ## 2) Intervention humaine obligatoire (Supabase)
 
@@ -18,50 +20,58 @@ Ce document est le mode opératoire **humain + LLM friendly** pour charger les d
 3. Exécuter.
 4. Vérifier que `geo_plui`, `geo_isochrones`, `geo_nuisances` existent.
 
-### Étape B — Charger des premiers jeux de test
-1. Toujours dans SQL Editor, coller `database/ingestion_angers_data.sql`.
+### Étape B — Installer la fonction d'ingestion RPC (copier/coller)
+1. Toujours dans SQL Editor, coller `database/ingestion_angers_cron.sql`.
 2. Exécuter.
-3. Contrôler la sortie des `SELECT` de vérification à la fin du script.
+3. Vérifier la création de `ingest_angers_feature_collection`.
 
-### Étape C — Configurer les variables côté app
+### Étape C — (Optionnel) Charger des données de test
+1. Coller `database/ingestion_angers_data.sql`.
+2. Exécuter.
+3. Contrôler les `SELECT` de vérification en bas du script.
+
+## 3) Intervention humaine obligatoire (Variables d'environnement)
+
+Définir ces variables sur Vercel (ou environnement serveur):
+
 - `NEXT_PUBLIC_SUPABASE_URL`
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-- `SUPABASE_SERVICE_ROLE_KEY` (recommandé côté serveur pour RPC sans blocage RLS)
+- `SUPABASE_SERVICE_ROLE_KEY`
+- `CRON_SECRET`
+- `ANGERS_PLUI_GEOJSON_URL`
+- `ANGERS_ISOCHRONES_GEOJSON_URL`
+- `ANGERS_NUISANCES_GEOJSON_URL`
 
-> Sans ces variables, l'app garde un fonctionnement dégradé (fallback non bloquant).
+> L'API route accepte `Authorization: Bearer <CRON_SECRET>` ou `x-cron-secret: <CRON_SECRET>`.
 
-## 3) Intervention humaine obligatoire (n8n)
+## 4) Planification
 
-1. Importer `workflows/n8n/angers_geo_ingestion_template.json` dans n8n.
-2. Créer la credential `Supabase Postgres` (host/db/user/password de Supabase).
-3. Dans le node **Set Config**, renseigner `dataset` et `table_target`.
-4. Pour `geo_isochrones` et `geo_nuisances`, dupliquer le bloc d'upsert en reprenant les requêtes de `database/ingestion_angers_n8n_queries.sql`.
-5. Lancer manuellement (dataset par dataset), vérifier les volumes, puis passer en cron (ex: mensuel).
+La planification hebdomadaire est déclarée dans `vercel.json`:
 
-## 4) Pourquoi cette organisation
+- chemin: `/api/cron/ingest-angers-data`
+- fréquence: `0 4 * * 1` (lundi 04:00 UTC)
 
-- Évite les copies SQL incohérentes (colonnes alignées avec le schéma réel).
-- Rend les imports idempotents via `ON CONFLICT`.
-- Prépare le passage à une ingestion industrialisée sans recoder le cœur.
-- Permet un fallback applicatif propre si Supabase n'est pas configuré.
+Tu peux déclencher manuellement avec curl :
 
-## 5) Contrôles de qualité recommandés
+```bash
+curl -X POST "https://<ton-domaine>/api/cron/ingest-angers-data" \
+  -H "Authorization: Bearer $CRON_SECRET"
+```
 
-- Couverture géographique : vérifier que les géométries tombent bien sur le 49.
-- Sanity checks : `COUNT(*)`, `ST_IsValid(geom)`, et test RPC `get_parcel_features`.
-- Monitoring n8n : % de lignes upsert, erreurs SQL, temps d'exécution.
+## 5) Pourquoi cette organisation
 
-## 6) Limites connues
+- **Moins de surface opérationnelle**: pas de n8n à maintenir.
+- **Idempotence**: chaque ingestion est en `ON CONFLICT` côté SQL.
+- **Source de vérité unique**: le mapping dataset vit dans la fonction SQL Supabase.
+- **Observabilité simple**: la route renvoie un rapport dataset par dataset (`ok`, `skipped`, `error`).
 
-- Le mapping exact des champs dépend du dataset Angers choisi (les noms de propriétés peuvent varier).
-- Le template n8n est volontairement générique et doit être ajusté au dataset réel.
-- Les politiques RLS doivent être validées selon le mode d'accès choisi (anon vs service role).
+## 6) Contrôles de qualité recommandés
 
+- Couverture géographique: vérifier que les géométries tombent bien sur le 49.
+- Sanity checks: `COUNT(*)`, `ST_IsValid(geom)`, et test RPC `get_parcel_features`.
+- Monitoring cron: inspecter la réponse JSON de la route (upserted_count par dataset).
 
-## 7) Datasets cibles conseillés (à valider dans data.angers.fr)
+## 7) Limites connues
 
-- Zoning PLUi (polygones de zonage) -> `geo_plui`
-- Accessibilité transports / tram / pôles de mobilité (isochrones/polygones) -> `geo_isochrones`
-- Cartographie stratégique du bruit Lden (polygones) -> `geo_nuisances`
-
-> Les noms exacts de datasets peuvent évoluer; valider chaque slug avant planification n8n.
+- Le mapping exact des champs dépend des propriétés retournées par l'Open Data Angers.
+- Les jeux de données doivent être des GeoJSON `FeatureCollection`.
+- Les politiques RLS doivent rester compatibles avec l'usage service-role côté serveur.

@@ -25,7 +25,7 @@ TrueSquare est une PropTech B2B qui redonne le pouvoir à l'agent immobilier. En
 - **Frontend Tunnel :** Next.js 14 (App Router) + Tailwind CSS (UI Premium)
 - **Backend Data & Géospatial :** Supabase (PostgreSQL + PostGIS) (DVF, PLUi, Isochrones)
 - **Moteur Machine Learning :** Microservice FastAPI Python (G-XGBoost + SHAP)
-- **Data Ingestion :** Workflows n8n (Aspiration GeoJSON Angers, traitement BAN)
+- **Data Ingestion :** Next.js API Route Cron + Supabase RPC (ingestion GeoJSON Angers)
 - **Composants :** UI ultra-légère (from scratch)
 
 ## 📦 Lancement Local
@@ -78,9 +78,10 @@ Découvrez la philosophie du projet dans le document [L'ÂME DE TRUESQUARE](./L_
 
 - Schéma PostGIS prêt Supabase : [`database/schema.sql`](./database/schema.sql)
 - Script SQL d'ingestion copy/paste : [`database/ingestion_angers_data.sql`](./database/ingestion_angers_data.sql)
-- Requêtes SQL n8n paramétrables : [`database/ingestion_angers_n8n_queries.sql`](./database/ingestion_angers_n8n_queries.sql)
-- Workflow n8n template : [`workflows/n8n/angers_geo_ingestion_template.json`](./workflows/n8n/angers_geo_ingestion_template.json)
-- Runbook humain (Supabase + n8n) : [`docs/operations/INGESTION_ANGERS_SUPABASE_N8N.md`](./docs/operations/INGESTION_ANGERS_SUPABASE_N8N.md)
+- Fonction SQL RPC d'ingestion cron : [`database/ingestion_angers_cron.sql`](./database/ingestion_angers_cron.sql)
+- API route cron sécurisée : [`src/app/api/cron/ingest-angers-data/route.ts`](./src/app/api/cron/ingest-angers-data/route.ts)
+- Planification Vercel Cron : [`vercel.json`](./vercel.json)
+- Runbook humain (Supabase + Cron Next.js) : [`docs/operations/INGESTION_ANGERS_SUPABASE_N8N.md`](./docs/operations/INGESTION_ANGERS_SUPABASE_N8N.md)
 - Revue critique architecture/exécution : [`docs/ARCHITECTURE_EXECUTION_REVIEW.md`](./docs/ARCHITECTURE_EXECUTION_REVIEW.md)
 
 ## 🧭 Philosophie Produit (version Directeur d'Agence)

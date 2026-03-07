@@ -50,7 +50,12 @@ Consolider la donnée pour donner encore plus d'armes à l'agent avant sa visite
 - *Besoin :* Un quartier se vend sur sa desserte et ses commodités, pas juste au m².
 - *Feature livrée :* Connexion Overpass (OpenStreetMap), calcul d'un score global /10 + sous-scores (transports, écoles, commerces alimentaires), comptage des commodités à 5/10 minutes à pied, et sélection des points d'appui visite les plus proches directement visibles côté agent.
 
-### 6. Valorisation Avancée des Appartements
+### 6. Industrialisation ingestion géospatiale Angers (Complété)
+
+- *Besoin :* Éviter la dépendance n8n et réduire la charge ops.
+- *Feature livrée :* API route cron Next.js sécurisée (`/api/cron/ingest-angers-data`) + fonction RPC Supabase `ingest_angers_feature_collection` + planification `vercel.json` hebdomadaire.
+
+### 7. Valorisation Avancée des Appartements
 
 - *Besoin :* Le marché des appartements obéit à des règles de copropriété et d'étage spécifiques.
 - *Feature :* Filtrage strict par type de local. Analyse comparative au sein du *même immeuble* (même numéro de voie). Pondérations dynamiques interactives pour l'étage (ex: RDC = -10%, dernier étage = +10%) et la présence d'un ascenseur.
