@@ -73,3 +73,45 @@ Pour aller encore plus loin sur la fiabilité et la protection de la logique mé
 ## 🗺 Vision & Roadmap
 
 Découvrez la philosophie du projet dans le document [L'ÂME DE TRUESQUARE](./L_AME.md) et consultez le futur de l'application dans la [ROADMAP](./ROADMAP.md).
+
+
+## 🧭 Philosophie Produit (version Directeur d'Agence)
+
+TrueSquare suit une philosophie simple : **moins de bruit, plus de décisions**.
+
+- **Approche Apple (clarté premium)** : une interface qui retire la complexité inutile, met en avant les signaux clés, et transforme un calcul en décision immédiate.
+- **Approche Airbnb (confiance par la transparence)** : l'utilisateur voit les preuves (comparables, filtres, qualité data), contrôle les exclusions, et comprend instantanément le “pourquoi” du prix.
+- **Approche terrain immobilier** : chaque fonctionnalité doit améliorer au moins un des 3 leviers agence :
+  1. prise de mandat,
+  2. vitesse de conversion,
+  3. pilotage du portefeuille.
+
+En pratique : TrueSquare n'est pas un gadget d'estimation. C'est un **système d'aide au closing** pour agents et directeurs.
+
+## 🧠 Lecture pour Humains ET LLMs
+
+### Entrées métier
+- Adresse BAN (géocodage)
+- Transactions DVF
+- DPE (quand disponible)
+
+### Sorties métier
+- Prix/m² médian corrigé
+- Indice de confiance
+- Warnings qualité
+- Dossier partageable (expiration)
+- Pipeline directeur (portefeuille statuts)
+
+### Surfaces fonctionnelles principales
+- `src/app/page.tsx` : expérience agent (recherche + estimation).
+- `src/components/SyntheseCard.tsx` : moteur d'argumentaire visuel premium.
+- `src/components/DossierActions.tsx` : actions CRM (sauvegarde + partage + envoi portefeuille).
+- `src/app/agence/page.tsx` : cockpit directeur (KPIs + suivi statuts).
+- `src/app/api/portfolio/*` : API portefeuille agence (GET/POST/PATCH).
+- `src/lib/portfolio.ts` : persistance JSON locale du portefeuille.
+
+### Règle d'or d'évolution
+Toute nouvelle fonctionnalité doit répondre à :
+1. **Urgence terrain** (utilisable en rendez-vous dès maintenant),
+2. **Impact business** (mandat, conversion, productivité),
+3. **Différenciation** (preuve, transparence, expérience premium).

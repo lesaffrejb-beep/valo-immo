@@ -81,6 +81,9 @@ Faire de TrueSquare l'outil central (L'OS de l'Agent).
 
 - Algorithme poussé estimant le coût des travaux pièce par pièce via machine learning sur des factures réelles de maîtres d'œuvre, avec intégration d'artisans locaux.
 
-### 2. Outil de Gestion de Portefeuille (Directeur d'Agence)
+### 2. Outil de Gestion de Portefeuille (Directeur d'Agence) (MVP livré)
 
-- Vue dashboard (Microsoft PowerBI style) pour un directeur d'agence qui suit l'agressivité de ses agents : "Combien d'estimations TrueSquare ont converti en mandats exclusifs ce mois-ci ?"
+- [x] Dashboard directeur (KPIs portefeuille) : estimations suivies, mandats exclusifs, taux de conversion exclusif, pipeline actif.
+- [x] Suivi de statuts de dossiers : estimation → RDV → mandat simple/exclusif → offre → vendu/perdu.
+- [x] Persistance portefeuille via API interne et stockage local JSON.
+- [ ] Étape suivante : vues multi-agences, filtres temporels avancés, benchmark par négociateur.
