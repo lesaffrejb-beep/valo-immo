@@ -102,8 +102,17 @@ export interface EstimationResult {
         };
     };
     neighborhood?: NeighborhoodScore;
+    geo_context?: GeoContext;
     warnings?: string[];
     shap_analysis?: ShapAnalysis;
+}
+
+
+export interface GeoContext {
+    zone_plui: string | null;
+    proximite_tram_10m: boolean;
+    nuisance_sonore_db: number | null;
+    in_angers_dataset: boolean;
 }
 
 export interface NeighborhoodAmenity {

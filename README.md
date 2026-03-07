@@ -74,6 +74,15 @@ L'architecture sépare strictement le backend transactionnel/data (Supabase/Post
 
 Découvrez la philosophie du projet dans le document [L'ÂME DE TRUESQUARE](./L_AME.md) et consultez le futur de l'application dans la [ROADMAP](./ROADMAP.md).
 
+## 🧱 Opérations Data Hyper-Locale (Angers)
+
+- Schéma PostGIS prêt Supabase : [`database/schema.sql`](./database/schema.sql)
+- Script SQL d'ingestion copy/paste : [`database/ingestion_angers_data.sql`](./database/ingestion_angers_data.sql)
+- Requêtes SQL n8n paramétrables : [`database/ingestion_angers_n8n_queries.sql`](./database/ingestion_angers_n8n_queries.sql)
+- Workflow n8n template : [`workflows/n8n/angers_geo_ingestion_template.json`](./workflows/n8n/angers_geo_ingestion_template.json)
+- Runbook humain (Supabase + n8n) : [`docs/operations/INGESTION_ANGERS_SUPABASE_N8N.md`](./docs/operations/INGESTION_ANGERS_SUPABASE_N8N.md)
+- Revue critique architecture/exécution : [`docs/ARCHITECTURE_EXECUTION_REVIEW.md`](./docs/ARCHITECTURE_EXECUTION_REVIEW.md)
+
 ## 🧭 Philosophie Produit (version Directeur d'Agence)
 
 TrueSquare suit une philosophie simple : **moins de bruit, plus de décisions**.
