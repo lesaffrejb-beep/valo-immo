@@ -3,39 +3,45 @@
 import { useEffect } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
-import L from "leaflet";
 import type { EstimationResult } from "@/lib/types";
 
-// Fix default icon issue with Leaflet in Next.js
-delete (L.Icon.Default.prototype as { _getIconUrl?: string })._getIconUrl;
-L.Icon.Default.mergeOptions({
-    iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",
-    iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png",
-    shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
-});
+// Helper dynamique pour éviter l'erreur SSR avec l'objet L
+const initCustomLeafletIcons = () => {
+    if (typeof window === "undefined") return null;
 
-// Create custom DivIcon for the target property
-const TargetIcon = L.divIcon({
-    className: "custom-target-icon",
-    html: `<div class="w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center shadow-lg border-2 border-background ring-4 ring-primary/20">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
-  </div>`,
-    iconSize: [32, 32],
-    iconAnchor: [16, 32],
-    popupAnchor: [0, -32],
-});
+    const L = require("leaflet");
 
-// Create custom DivIcon for DVF transactions
-const createDvfIcon = (isExcluded: boolean, isBuilding: boolean) => {
-    return L.divIcon({
-        className: "custom-dvf-icon",
-        html: `<div class="w-6 h-6 rounded-full flex items-center justify-center shadow-md border-2 ${isExcluded ? 'bg-muted border-border text-muted-foreground opacity-50' : 'bg-background border-primary text-primary'}">
-            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${isBuilding ? '<rect width="16" height="20" x="4" y="2" rx="2" ry="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01"/><path d="M16 6h.01"/><path d="M12 6h.01"/><path d="M12 10h.01"/><path d="M12 14h.01"/><path d="M16 10h.01"/><path d="M16 14h.01"/><path d="M8 10h.01"/><path d="M8 14h.01"/>' : '<path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>'}</svg>
-        </div>`,
-        iconSize: [24, 24],
-        iconAnchor: [12, 12],
-        popupAnchor: [0, -12],
+    // Fix default icon issue with Leaflet in Next.js
+    delete (L.Icon.Default.prototype as { _getIconUrl?: string })._getIconUrl;
+    L.Icon.Default.mergeOptions({
+        iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",
+        iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png",
+        shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
     });
+
+    const targetIcon = L.divIcon({
+        className: "custom-target-icon",
+        html: `<div class="w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center shadow-lg border-2 border-background ring-4 ring-primary/20">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+      </div>`,
+        iconSize: [32, 32],
+        iconAnchor: [16, 32],
+        popupAnchor: [0, -32],
+    });
+
+    const createDvfIcon = (isExcluded: boolean, isBuilding: boolean) => {
+        return L.divIcon({
+            className: "custom-dvf-icon",
+            html: `<div class="w-6 h-6 rounded-full flex items-center justify-center shadow-md border-2 ${isExcluded ? 'bg-muted border-border text-muted-foreground opacity-50' : 'bg-background border-primary text-primary'}">
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${isBuilding ? '<rect width="16" height="20" x="4" y="2" rx="2" ry="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01"/><path d="M16 6h.01"/><path d="M12 6h.01"/><path d="M12 10h.01"/><path d="M12 14h.01"/><path d="M16 10h.01"/><path d="M16 14h.01"/><path d="M8 10h.01"/><path d="M8 14h.01"/>' : '<path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>'}</svg>
+            </div>`,
+            iconSize: [24, 24],
+            iconAnchor: [12, 12],
+            popupAnchor: [0, -12],
+        });
+    };
+
+    return { targetIcon, createDvfIcon };
 };
 
 function ChangeView({ center }: { center: [number, number] }) {
@@ -57,6 +63,10 @@ export default function MapWidget({ result, excludedIds, onToggleExclusion }: { 
         );
     }
 
+    const icons = initCustomLeafletIcons();
+    if (!icons) return null;
+    const { targetIcon, createDvfIcon } = icons;
+
     return (
         <div className="w-full h-[400px] rounded-2xl overflow-hidden border border-border bg-card shadow-sm relative z-0">
             <MapContainer
@@ -75,7 +85,7 @@ export default function MapWidget({ result, excludedIds, onToggleExclusion }: { 
                 <ChangeView center={targetCenter} />
 
                 {/* Target Property Marker */}
-                <Marker position={targetCenter} icon={TargetIcon}>
+                <Marker position={targetCenter} icon={targetIcon}>
                     <Popup className="premium-popup">
                         <div className="text-center pb-1">
                             <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest mb-1">Bien Cible</p>

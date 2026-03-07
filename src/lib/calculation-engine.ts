@@ -235,12 +235,23 @@ export function computeSynthese(
     };
 }
 
+export interface WizardData {
+    surface?: number;
+    dpe?: string | null;
+    pptVote?: boolean | null;
+    typeBien?: string | null;
+    etage?: string | null;
+    ascenseur?: boolean | null;
+    vueDegagee?: boolean | null;
+    [key: string]: unknown;
+}
+
 /**
  * Mock pour simuler la réponse de l'API Python XGBoost + SHAP
  */
 export function computeShapMock(
     synthese: ReturnType<typeof computeSynthese>,
-    wizardData: any
+    wizardData: WizardData
 ): ShapAnalysis {
     const surface = wizardData.surface || synthese.surface_reference;
     // Base Calculation starting from median
@@ -289,6 +300,64 @@ export function computeShapMock(
         description: "Exposition Bruit Modérée (Lden 60dB)"
     });
     prix_estime += decote_bruit;
+
+    // ─── Modificateurs Appartement (Étage, Ascenseur, Vue) ────────────────────
+    if (wizardData.typeBien === "appartement" && wizardData.etage) {
+        let impact_etage = 0;
+        let label_etage = "";
+
+        const etage: string = wizardData.etage;
+        const ascenseur: boolean | null = wizardData.ascenseur ?? null;
+        const vueDegagee: boolean | null = wizardData.vueDegagee ?? null;
+
+        if (etage === "rdc") {
+            // RDC : décote systématique (luminosité, sécurité, humidité)
+            impact_etage = -round2(prix_base * 0.05);
+            label_etage = "Rez-de-chaussée (décote accès, luminosité)";
+        } else if (etage === "1-3") {
+            // Étages intermédiaires bas : neutre à léger bonus
+            impact_etage = ascenseur === false ? 0 : round2(prix_base * 0.01);
+            label_etage = ascenseur === false
+                ? "Étages 1-3 sans ascenseur (neutre)"
+                : "Étages 1-3 avec ascenseur (+1%)";
+        } else if (etage === "4-5") {
+            // Étages moyens-hauts : bonus ascenseur important
+            impact_etage = ascenseur === true
+                ? round2(prix_base * 0.05)
+                : -round2(prix_base * 0.02);
+            label_etage = ascenseur === true
+                ? "Étages 4-5 avec ascenseur (confort +5%)"
+                : "Étages 4-5 sans ascenseur (pénibilité -2%)";
+        } else if (etage === "6+") {
+            // Dernier(s) étage(s) : forte prime si ascenseur, forte décote sinon
+            impact_etage = ascenseur === true
+                ? round2(prix_base * 0.08)
+                : -round2(prix_base * 0.04);
+            label_etage = ascenseur === true
+                ? "Étage élevé avec ascenseur (vue, calme +8%)"
+                : "Étage élevé sans ascenseur (fort malus -4%)";
+        }
+
+        if (impact_etage !== 0) {
+            explications_shap.push({
+                feature: "etage_copro",
+                impact_value: impact_etage,
+                description: label_etage,
+            });
+            prix_estime += impact_etage;
+        }
+
+        // Vue dégagée : bonus indépendant de l'étage
+        if (vueDegagee === true) {
+            const bonus_vue = round2(prix_base * 0.03);
+            explications_shap.push({
+                feature: "vue_degagee",
+                impact_value: bonus_vue,
+                description: "Vue dégagée ou remarquable (+3%)",
+            });
+            prix_estime += bonus_vue;
+        }
+    }
 
     return {
         prix_base,

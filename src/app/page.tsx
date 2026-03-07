@@ -2,9 +2,10 @@
 
 import { useState, useTransition } from "react";
 import { Building2, Loader2, Info, BarChart3 } from "lucide-react";
-import SearchBar from "@/components/SearchBar";
 import dynamic from "next/dynamic";
 import type { BanResult, EstimationResult } from "@/lib/types";
+
+const SearchBar = dynamic(() => import("@/components/SearchBar"), { ssr: false });
 
 const ResultPanel = dynamic(() => import("@/components/ResultPanel"), {
   loading: () => <div className="p-12 text-center text-[var(--muted-foreground)] flex items-center justify-center gap-2"><Loader2 className="animate-spin h-5 w-5" /> Initialisation de l&apos;environnement d&apos;expertise...</div>,
@@ -22,7 +23,7 @@ export default function Home() {
   const [state, setState] = useState<AppState>({ status: "idle" });
   const [isPending, startTransition] = useTransition();
 
-  const handleSelect = (data: any) => {
+  const handleSelect = (data: BanResult & Partial<Record<string, unknown>>) => {
     startTransition(async () => {
       setState({ status: "loading" });
       try {
@@ -214,7 +215,7 @@ function ExampleBtn({
   onSelect,
 }: {
   label: string;
-  onSelect: (b: BanResult) => void;
+  onSelect: (b: BanResult & Partial<Record<string, unknown>>) => void;
 }) {
   const handleClick = async () => {
     try {

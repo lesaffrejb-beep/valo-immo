@@ -75,8 +75,11 @@ CREATE UNIQUE INDEX IF NOT EXISTS uniq_geo_plui_source ON geo_plui (source_featu
 CREATE UNIQUE INDEX IF NOT EXISTS uniq_geo_isochrones_source ON geo_isochrones (source_feature_id);
 CREATE UNIQUE INDEX IF NOT EXISTS uniq_geo_nuisances_source ON geo_nuisances (source_feature_id);
 
--- 4. INDEX SPATIAUX
+-- 4. INDEX SPATIAUX ET CLASSIQUES
 CREATE INDEX IF NOT EXISTS idx_data_dvf_geom ON data_dvf USING GIST (geom);
+CREATE INDEX IF NOT EXISTS idx_data_dvf_code_postal ON data_dvf (code_postal);
+CREATE INDEX IF NOT EXISTS idx_data_dvf_type_local ON data_dvf (type_local);
+CREATE INDEX IF NOT EXISTS idx_data_dvf_dpe_classe ON data_dvf (dpe_classe);
 CREATE INDEX IF NOT EXISTS idx_geo_plui_geom ON geo_plui USING GIST (geom);
 CREATE INDEX IF NOT EXISTS idx_geo_isochrones_geom ON geo_isochrones USING GIST (geom);
 CREATE INDEX IF NOT EXISTS idx_geo_nuisances_geom ON geo_nuisances USING GIST (geom);

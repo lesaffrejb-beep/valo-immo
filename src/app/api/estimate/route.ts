@@ -13,6 +13,10 @@ const estimateQuerySchema = z.object({
     surface: z.number().optional(),
     dpe: z.string().optional(),
     pptVote: z.boolean().nullable().optional(),
+    // Modificateurs appartement
+    etage: z.enum(["rdc", "1-3", "4-5", "6+"]).nullable().optional(),
+    ascenseur: z.boolean().nullable().optional(),
+    vueDegagee: z.boolean().nullable().optional(),
 });
 
 export async function POST(request: Request) {
@@ -92,8 +96,6 @@ export async function POST(request: Request) {
             warnings.push("Aucune transaction DVF exploitable n'a été trouvée dans ce périmètre. Élargissez la zone ou vérifiez l'adresse.");
         }
 
-
-        warnings.push("Module Live Scraping concurrents (beta) activé : annonces à vendre LeBonCoin/SeLoger affichées pour le pitch de positionnement en rendez-vous.");
 
         const result: EstimationResult = {
             adresse: ban.label,

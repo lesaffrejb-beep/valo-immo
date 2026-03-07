@@ -20,7 +20,7 @@ const MapWidget = dynamic(() => import("./MapWidget"), {
     )
 });
 
-export default function ResultPanel({ result }: { result: EstimationResult }) {
+export default function ResultPanel({ result, isSharedView = false }: { result: EstimationResult, isSharedView?: boolean }) {
     const [excludedIds, setExcludedIds] = useState<Set<string>>(new Set());
 
     const toggleExclusion = (id: string) => {
@@ -71,7 +71,7 @@ export default function ResultPanel({ result }: { result: EstimationResult }) {
                 result={computedResult}
             />
 
-            <DossierActions result={computedResult} />
+            {!isSharedView && <DossierActions result={computedResult} />}
 
             {result.neighborhood ? (
                 <NeighborhoodScoreCard neighborhood={result.neighborhood} />
@@ -86,10 +86,12 @@ export default function ResultPanel({ result }: { result: EstimationResult }) {
                 <LiveMarketCard
                     liveMarket={result.live_market}
                     dvfMedianPriceM2={result.synthese.prix_m2_corrige_median}
+                    lat={result.ban.lat}
+                    lon={result.ban.lon}
                 />
             )}
 
-                        {/* Waterfall SHAP (Modèle XGBoost) */}
+            {/* Waterfall SHAP (Modèle XGBoost) */}
             {result.shap_analysis && (
                 <ShapWaterfall analysis={result.shap_analysis} />
             )}

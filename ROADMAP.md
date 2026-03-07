@@ -5,14 +5,25 @@ Le socle V6 "L'Expertise Interactive" (API DVF/DPE, Score de Quartier, Présenta
 
 ---
 
+## ✅ Livré en Production
+
+### 1. CRM, Sauvegarde de Dossiers & Expérience "Urgence" (Option C)
+
+- *Besoin :* L'agent doit conserver son travail, suivre son pipeline et créer un sentiment d'exclusivité avec son client.
+- *Feature :* Persistance robuste d'une *SyntheseCard* dans Supabase (table `shared_dossiers`). Génération d'un lien web partageable `/partage/[token]` avec une date d'expiration fixée à 48h. L'interface affiche un compte à rebours dynamique pour créer un sentiment d'urgence chez le vendeur/acheteur, accélérant ainsi la prise de décision.
+
+### Live Scraping Concurrents V1.0-beta — Marché actif en temps réel
+
+- *Architecture :* 3 couches — Cache Supabase (6h) → ZenRows (scraping réel si clé API configurée) → Fallback statique enrichi (DPE/GES/délai).
+- *UI :* `LiveMarketCard` avec badges DPE colorés, delta DVF vs marché actif, script RDV dynamique, bouton refresh asynchrone.
+- *API :* Route dédiée `GET /api/live-market?lat=&lon=&radius=` avec cache HTTP 1h.
+- *TODO pour activer le vrai scraping :* ajouter `ZENROWS_API_KEY` dans `.env.local`.
+
+---
+
 ## 🎯 Priorité 1 : Immédiate & Haute Valeur (Prospection & Pricing Fin)
 
-### 1. Scraping / API Annonces Concurrentes ("Ce qui est à vendre")
-
-- *Besoin :* Le DVF regarde le PASSÉ (les ventes actées). Il faut regarder LE PRÉSENT (les biens sur le marché).
-- *Feature :* Afficher les biens similaires actuellement en vente sur les portails (LeBonCoin, SeLoger) dans la `SyntheseCard`. Cela permet à l'agent de démontrer la réalité de la concurrence directe (prix de présentation vs prix de transaction) pour ajuster au mieux le prix de commercialisation.
-
-### 2. Valorisation Avancée des Appartements (Micro-Modificateurs)
+### 1. Valorisation Avancée des Appartements (Micro-Modificateurs)
 
 - *Besoin :* Le marché des appartements obéit à des règles de copropriété et d'étage spécifiques que le DVF brut peine à capturer finement.
 - *Feature :* Filtrage strict par type de local (Appartement vs Maison). Analyse comparative au sein du *même immeuble* via la parcelle cadastrale. Ajout de pondérations dynamiques interactives dans l'UI pour l'étage (ex: RDC = -10%, dernier étage = +10%) et la présence ou non d'un ascenseur.
@@ -20,11 +31,6 @@ Le socle V6 "L'Expertise Interactive" (API DVF/DPE, Score de Quartier, Présenta
 ---
 
 ## 🚀 Priorité 2 : Rétention & Expérience Client (CRM & Conversion)
-
-### 3. CRM, Sauvegarde de Dossiers & Expérience "Urgence"
-
-- *Besoin :* L'agent doit conserver son travail, suivre son pipeline et créer un sentiment d'exclusivité avec son client.
-- *Feature :* Persistance robuste d'une *SyntheseCard* dans Supabase. Génération d'un lien web partageable avec une date d'expiration (ex: 48h) pour créer un sentiment d'urgence chez le vendeur/acheteur, accélérant ainsi la prise de décision.
 
 ### 4. Génération Automatique du Plan de Financement (Export Courtier)
 

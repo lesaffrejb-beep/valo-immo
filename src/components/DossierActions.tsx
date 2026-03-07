@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Copy, FolderHeart, Share2, ShieldAlert } from "lucide-react";
+import { Copy, FolderHeart, Share2, ShieldAlert, Timer } from "lucide-react";
 import type { EstimationResult } from "@/lib/types";
 
 const LOCAL_KEY = "true-square:dossiers";
@@ -49,16 +49,21 @@ export default function DossierActions({ result }: { result: EstimationResult })
       const response = await fetch("/api/dossiers", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ dossier: result, ttlHours: 72 }),
+        body: JSON.stringify({ dossier: result, ttlHours: 48 }),
       });
 
       const json = await response.json();
       if (!json.success) throw new Error(json.error || "Erreur de création.");
 
-      const shareUrl = `${window.location.origin}/partage/${json.data.token}`;
+      const shareUrl = `${typeof window !== 'undefined' ? window.location.origin : ''}/partage/${json.data.token}`;
       await navigator.clipboard.writeText(shareUrl);
 
-      const expiresAt = new Date(json.data.expiresAt).toLocaleString("fr-FR");
+      const expiresAt = new Date(json.data.expiresAt).toLocaleString("fr-FR", {
+        day: "2-digit",
+        month: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit"
+      });
       setMessage(`Lien copié. Expiration automatique le ${expiresAt}.`);
     } catch {
       setMessage("Impossible de générer le lien de partage.");
@@ -68,13 +73,13 @@ export default function DossierActions({ result }: { result: EstimationResult })
   };
 
   return (
-    <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-5 sm:p-6 shadow-sm space-y-4">
+    <div className="rounded-2xl border border-border bg-card p-5 sm:p-6 shadow-sm space-y-4">
       <div className="flex items-start gap-3">
         <FolderHeart className="h-5 w-5 mt-0.5 text-primary" />
         <div>
-          <h3 className="text-base font-bold text-[var(--foreground)]">CRM & Partage rapide</h3>
-          <p className="text-sm text-[var(--muted-foreground)] mt-1">
-            Sauvegardez la synthèse en local et créez un lien expirant pour maintenir l&apos;urgence commerciale.
+          <h3 className="text-base font-bold text-foreground">CRM & Partage rapide</h3>
+          <p className="text-sm text-muted-foreground mt-1">
+            Sauvegardez la synthèse en local et créez un lien expirant pour maintenir l&apos;urgence commerciale auprès de votre prospect.
           </p>
         </div>
       </div>
@@ -89,14 +94,18 @@ export default function DossierActions({ result }: { result: EstimationResult })
         <button
           onClick={createShareLink}
           disabled={isBusy}
-          className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
+          className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white disabled:opacity-60 relative overflow-hidden group"
         >
-          {isBusy ? <Share2 className="h-4 w-4 animate-pulse" /> : <Copy className="h-4 w-4" />} Lien partageable 72h
+          {/* Subtle gradient effect for the main CTA */}
+          <div className="absolute inset-0 bg-linear-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 pointer-events-none" />
+
+          {isBusy ? <Share2 className="h-4 w-4 animate-pulse relative z-10" /> : <Timer className="h-4 w-4 relative z-10" />}
+          <span className="relative z-10">Lien client valide 48h</span>
         </button>
       </div>
 
       {message && (
-        <div className="text-sm font-medium text-[var(--muted-foreground)] flex items-center gap-2">
+        <div className="text-sm font-medium text-muted-foreground flex items-center gap-2 animate-fade-in-up">
           <ShieldAlert className="h-4 w-4" />
           <span>{message}</span>
         </div>

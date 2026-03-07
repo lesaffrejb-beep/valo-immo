@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createSharedDossier } from "@/lib/dossiers";
+import type { EstimationResult } from "@/lib/types";
 
 const payloadSchema = z.object({
-  dossier: z.any(),
-  ttlHours: z.number().min(1).max(168).default(72),
+  dossier: z.record(z.string(), z.unknown()),
+  ttlHours: z.number().min(1).max(168).default(48),
 });
 
 export async function POST(request: Request) {
@@ -16,7 +17,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: "Payload invalide." }, { status: 400 });
     }
 
-    const shared = createSharedDossier(parsed.data.dossier, parsed.data.ttlHours);
+    const shared = await createSharedDossier(parsed.data.dossier as unknown as EstimationResult, parsed.data.ttlHours);
 
     return NextResponse.json({
       success: true,
@@ -25,7 +26,9 @@ export async function POST(request: Request) {
         expiresAt: shared.expiresAt,
       },
     });
-  } catch {
+  } catch (error) {
+    console.error("[API/dossiers]", error);
     return NextResponse.json({ success: false, error: "Impossible de créer le lien." }, { status: 500 });
   }
 }
+

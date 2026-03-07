@@ -3,7 +3,7 @@ import { getSharedDossier } from "@/lib/dossiers";
 
 export async function GET(_: Request, { params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;
-  const shared = getSharedDossier(token);
+  const shared = await getSharedDossier(token);
 
   if (!shared) {
     return NextResponse.json(
@@ -14,3 +14,4 @@ export async function GET(_: Request, { params }: { params: Promise<{ token: str
 
   return NextResponse.json({ success: true, data: shared });
 }
+

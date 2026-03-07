@@ -1,5 +1,5 @@
-import { randomUUID } from "crypto";
 import type { EstimationResult } from "@/lib/types";
+import { supabase } from "@/lib/supabase";
 
 export interface SharedDossier {
   token: string;
@@ -8,32 +8,57 @@ export interface SharedDossier {
   dossier: EstimationResult;
 }
 
-const store = new Map<string, SharedDossier>();
-
-export function createSharedDossier(dossier: EstimationResult, ttlHours: number) {
+export async function createSharedDossier(dossier: EstimationResult, ttlHours: number): Promise<SharedDossier> {
   const safeTtl = Number.isFinite(ttlHours) ? Math.min(168, Math.max(1, Math.round(ttlHours))) : 72;
   const now = new Date();
   const expiresAt = new Date(now.getTime() + safeTtl * 60 * 60 * 1000);
 
-  const shared: SharedDossier = {
-    token: randomUUID(),
-    createdAt: now.toISOString(),
-    expiresAt: expiresAt.toISOString(),
-    dossier,
-  };
+  const { data, error } = await supabase
+    .from("shared_dossiers")
+    .insert([
+      {
+        dossier_data: dossier,
+        expires_at: expiresAt.toISOString(),
+        created_at: now.toISOString(),
+      },
+    ])
+    .select()
+    .single();
 
-  store.set(shared.token, shared);
-  return shared;
+  if (error || !data) {
+    console.error("[dossiers] Error creating shared dossier:", error);
+    throw new Error("Impossible de créer le dossier partagé.");
+  }
+
+  return {
+    token: data.token,
+    createdAt: data.created_at,
+    expiresAt: data.expires_at,
+    dossier: data.dossier_data as EstimationResult,
+  };
 }
 
-export function getSharedDossier(token: string) {
-  const shared = store.get(token);
-  if (!shared) return null;
+export async function getSharedDossier(token: string): Promise<SharedDossier | null> {
+  const { data, error } = await supabase
+    .from("shared_dossiers")
+    .select("*")
+    .eq("token", token)
+    .single();
 
-  if (Date.now() > new Date(shared.expiresAt).getTime()) {
-    store.delete(token);
+  if (error || !data) {
+    console.error("[dossiers] Error GET shared dossier:", error);
     return null;
   }
 
-  return shared;
+  // Vérifier l'expiration (Bien que RLS / Purge devrait théoriquement gérer ça, c'est une sécurité)
+  if (Date.now() > new Date(data.expires_at).getTime()) {
+    return null;
+  }
+
+  return {
+    token: data.token,
+    createdAt: data.created_at,
+    expiresAt: data.expires_at,
+    dossier: data.dossier_data as EstimationResult,
+  };
 }

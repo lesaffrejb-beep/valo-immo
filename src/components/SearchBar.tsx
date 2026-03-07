@@ -5,18 +5,22 @@ import { Search, MapPin, Loader2, X, ArrowRight, Building, Home, CheckCircle2, S
 import type { BanResult } from "@/lib/types";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
-import L from "leaflet";
+import "leaflet/dist/leaflet.css";
 
-// Map Icon
-const TargetIcon = typeof window !== 'undefined' ? L.divIcon({
-    className: "custom-target-icon",
-    html: `<div class="w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center shadow-lg border-2 border-background ring-4 ring-primary/20">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
-  </div>`,
-    iconSize: [32, 32],
-    iconAnchor: [16, 32],
-    popupAnchor: [0, -32],
-}) : null;
+// Helper pour charger dynamiquement Leaflet uniquement côté client
+const getTargetIcon = () => {
+    if (typeof window === 'undefined') return null;
+    const L = require('leaflet');
+    return L.divIcon({
+        className: "custom-target-icon",
+        html: `<div class="w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center shadow-lg border-2 border-background ring-4 ring-primary/20">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+      </div>`,
+        iconSize: [32, 32],
+        iconAnchor: [16, 32],
+        popupAnchor: [0, -32],
+    });
+};
 
 function ChangeView({ center }: { center: [number, number] }) {
     const map = useMap();
@@ -44,14 +48,14 @@ function MiniMap({ lat, lon }: MiniMapProps) {
             >
                 <TileLayer url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" />
                 <ChangeView center={center} />
-                {TargetIcon && <Marker position={center} icon={TargetIcon} />}
+                {getTargetIcon() && <Marker position={center} icon={getTargetIcon() || undefined} />}
             </MapContainer>
         </div>
     );
 }
 
 interface SearchBarProps {
-    onSelect: (result: BanResult & Record<string, any>) => void;
+    onSelect: (result: BanResult & Record<string, unknown>) => void;
     isLoading?: boolean;
 }
 
@@ -85,6 +89,11 @@ export default function SearchBar({ onSelect, isLoading = false }: SearchBarProp
     // Step 3: Modifiers
     const [dpe, setDpe] = useState<string | null>(null);
     const [pptVote, setPptVote] = useState<boolean | null>(null);
+    // Modificateurs appartement (Step 3 conditionnel)
+    const [etage, setEtage] = useState<"rdc" | "1-3" | "4-5" | "6+" | null>(null);
+    const [ascenseur, setAscenseur] = useState<boolean | null>(null);
+    const [vueDegagee, setVueDegagee] = useState<boolean | null>(null);
+
 
     // Step 4: Lead
     const [leadName, setLeadName] = useState("");
@@ -133,7 +142,7 @@ export default function SearchBar({ onSelect, isLoading = false }: SearchBarProp
         setIsOpen(false);
     };
 
-    const nextStep = () => setStep((s) => Math.min(s + 1, 4) as any);
+    const nextStep = () => setStep((s) => Math.min(s + 1, 4) as 1 | 2 | 3 | 4);
 
     const handleStep2Submit = () => {
         if (!surface || !pieces || !annee) return;
@@ -155,6 +164,9 @@ export default function SearchBar({ onSelect, isLoading = false }: SearchBarProp
                 annee: parseInt(annee),
                 dpe,
                 pptVote,
+                etage,
+                ascenseur,
+                vueDegagee,
                 lead: { name: leadName, email: leadEmail, tel: leadTel }
             });
         }
@@ -334,8 +346,91 @@ export default function SearchBar({ onSelect, isLoading = false }: SearchBarProp
                             </div>
                         )}
 
+                        {/* Modificateurs Copropriété — Appartement uniquement */}
+                        {typeBien === 'appartement' && (
+                            <div className="space-y-6 p-5 rounded-xl border border-border bg-background">
+                                <p className="text-sm font-bold text-foreground uppercase tracking-wider">Caractéristiques de copropriété</p>
+
+                                {/* Étage */}
+                                <div className="space-y-3">
+                                    <label className="text-sm font-bold text-muted-foreground uppercase tracking-wider">Étage du bien</label>
+                                    <div className="grid grid-cols-4 gap-2">
+                                        {([
+                                            { key: 'rdc', label: 'RDC' },
+                                            { key: '1-3', label: '1-3ᵉ' },
+                                            { key: '4-5', label: '4-5ᵉ' },
+                                            { key: '6+', label: '6+' },
+                                        ] as const).map(({ key, label }) => (
+                                            <button
+                                                key={key}
+                                                onClick={() => setEtage(key)}
+                                                className={`py-3 rounded-xl border-2 font-bold text-sm transition-all ${etage === key
+                                                    ? 'border-primary bg-primary/10 text-primary'
+                                                    : 'border-border bg-transparent text-muted-foreground hover:border-primary/40'
+                                                    }`}
+                                            >
+                                                {label}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* Ascenseur */}
+                                {etage && etage !== 'rdc' && (
+                                    <div className="space-y-3">
+                                        <label className="text-sm font-bold text-muted-foreground uppercase tracking-wider">Ascenseur</label>
+                                        <div className="grid grid-cols-2 gap-3">
+                                            <button
+                                                onClick={() => setAscenseur(true)}
+                                                className={`py-3 rounded-xl border-2 font-bold text-sm transition-all ${ascenseur === true
+                                                    ? 'border-primary bg-primary/10 text-primary'
+                                                    : 'border-border bg-transparent text-muted-foreground hover:border-primary/40'
+                                                    }`}
+                                            >
+                                                Oui
+                                            </button>
+                                            <button
+                                                onClick={() => setAscenseur(false)}
+                                                className={`py-3 rounded-xl border-2 font-bold text-sm transition-all ${ascenseur === false
+                                                    ? 'border-destructive bg-destructive/10 text-destructive'
+                                                    : 'border-border bg-transparent text-muted-foreground hover:border-destructive/30'
+                                                    }`}
+                                            >
+                                                Non
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Vue dégagée */}
+                                <div className="space-y-3">
+                                    <label className="text-sm font-bold text-muted-foreground uppercase tracking-wider">Vue dégagée ou intéressante</label>
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <button
+                                            onClick={() => setVueDegagee(true)}
+                                            className={`py-3 rounded-xl border-2 font-bold text-sm transition-all ${vueDegagee === true
+                                                ? 'border-primary bg-primary/10 text-primary'
+                                                : 'border-border bg-transparent text-muted-foreground hover:border-primary/40'
+                                                }`}
+                                        >
+                                            Oui
+                                        </button>
+                                        <button
+                                            onClick={() => setVueDegagee(false)}
+                                            className={`py-3 rounded-xl border-2 font-bold text-sm transition-all ${vueDegagee === false
+                                                ? 'border-border bg-muted text-muted-foreground'
+                                                : 'border-border bg-transparent text-muted-foreground hover:border-primary/40'
+                                                }`}
+                                        >
+                                            Non / Standard
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
                         <button
-                            disabled={!dpe || (isOldAppartment && pptVote === null)}
+                            disabled={!dpe || (isOldAppartment && pptVote === null) || (typeBien === 'appartement' && (!etage || (etage !== 'rdc' && ascenseur === null) || vueDegagee === null))}
                             onClick={nextStep}
                             className="w-full mt-6 flex items-center justify-center gap-2 bg-foreground text-background py-4 rounded-xl font-bold hover:bg-foreground/90 disabled:opacity-50 transition-all"
                         >

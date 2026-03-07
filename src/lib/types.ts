@@ -99,17 +99,24 @@ export interface LiveListing {
     distance_m: number | null;
     price_m2: number | null;
     published_at: string | null;
+    dpe_letter: string | null;      // "A" à "G"
+    ges_letter: string | null;      // "A" à "G"
+    days_on_market: number | null;  // délai de rotation (jours depuis publication)
+    thumbnail_url?: string;         // URL de l'image de l'annonce
 }
 
 export interface LiveMarketSnapshot {
     generated_at: string;
     radius_m: number;
     listings: LiveListing[];
+    is_demo: boolean;        // true si données FALLBACK statiques
+    source_cache: boolean;   // true si données servies depuis Supabase cache
     summary: {
         count: number;
         median_price: number | null;
         median_price_m2: number | null;
         by_source: Record<LiveListingSource, number>;
+        avg_days_on_market: number | null;
     };
 }
 
