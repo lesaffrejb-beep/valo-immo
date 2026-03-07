@@ -3,6 +3,8 @@ import type {
     DpeResult,
     TransactionAnalysis,
     WeightedSurface,
+    ShapAnalysis,
+    ShapValue,
 } from "./types";
 
 /* ─── Coefficients de Pondération ─── */
@@ -230,5 +232,69 @@ export function computeSynthese(
             sample_size_ok: analyses.length >= 3,
             has_dpe: !!dpe,
         },
+    };
+}
+
+/**
+ * Mock pour simuler la réponse de l'API Python XGBoost + SHAP
+ */
+export function computeShapMock(
+    synthese: ReturnType<typeof computeSynthese>,
+    wizardData: any
+): ShapAnalysis {
+    const surface = wizardData.surface || synthese.surface_reference;
+    // Base Calculation starting from median
+    const prix_base = round2(synthese.prix_m2_corrige_median * surface);
+    let prix_estime = prix_base;
+
+    const explications_shap: ShapValue[] = [];
+
+    // Simulate Positives (Tramway, Ecoles)
+    const bonus_tram = round2(prix_base * 0.05);
+    explications_shap.push({
+        feature: "tramway",
+        impact_value: bonus_tram,
+        description: "Proximité Tram B/C (< 10min)"
+    });
+    prix_estime += bonus_tram;
+
+    // Simulate DPE Decote
+    if (wizardData.dpe && ['E', 'F', 'G'].includes(wizardData.dpe)) {
+        const factor = wizardData.dpe === 'G' ? 250 : wizardData.dpe === 'F' ? 150 : 80;
+        const decote = - (surface * factor);
+        explications_shap.push({
+            feature: "dpe",
+            impact_value: decote,
+            description: `Décote Rénovation DPE ${wizardData.dpe}`
+        });
+        prix_estime += decote;
+    }
+
+    // Simulate PPT (Copropriété risk)
+    if (wizardData.pptVote === false) {
+        const decote_ppt = -15000;
+        explications_shap.push({
+            feature: "ppt",
+            impact_value: decote_ppt,
+            description: "Risque Loi Alur (Absence Fonds PPT)"
+        });
+        prix_estime += decote_ppt;
+    }
+
+    // Simulate Nuisance (Noise etc.)
+    const decote_bruit = - round2(prix_base * 0.02);
+    explications_shap.push({
+        feature: "nuisance",
+        impact_value: decote_bruit,
+        description: "Exposition Bruit Modérée (Lden 60dB)"
+    });
+    prix_estime += decote_bruit;
+
+    return {
+        prix_base,
+        prix_estime: round2(prix_estime),
+        intervalle_min: round2(prix_estime * 0.94),
+        intervalle_max: round2(prix_estime * 1.06),
+        explications_shap
     };
 }

@@ -22,13 +22,21 @@ export default function Home() {
   const [state, setState] = useState<AppState>({ status: "idle" });
   const [isPending, startTransition] = useTransition();
 
-  const handleSelect = (ban: BanResult) => {
+  const handleSelect = (data: any) => {
     startTransition(async () => {
       setState({ status: "loading" });
       try {
-        const res = await fetch(
-          `/api/estimate?adresse=${encodeURIComponent(ban.label)}`
-        );
+        const res = await fetch(`/api/estimate`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            adresse: data.label,
+            typeBien: data.typeBien,
+            surface: data.surface,
+            dpe: data.dpe,
+            pptVote: data.pptVote
+          })
+        });
         const json = await res.json();
         if (!json.success) {
           setState({ status: "error", message: json.error || "Erreur inconnue." });

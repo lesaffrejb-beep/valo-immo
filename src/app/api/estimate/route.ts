@@ -1,17 +1,21 @@
 import { NextResponse } from "next/server";
 import { geocodeAddress, fetchDvfMutations, fetchDpe } from "@/lib/api-clients";
-import { processTransactions, computeSynthese } from "@/lib/calculation-engine";
+import { processTransactions, computeSynthese, computeShapMock } from "@/lib/calculation-engine";
 import { computeNeighborhoodScore } from "@/lib/neighborhood";
 import type { EstimationResult } from "@/lib/types";
 import { z } from "zod";
 
 const estimateQuerySchema = z.object({
     adresse: z.string().min(5, "L'adresse doit faire au moins 5 caractères.").max(150, "Adresse trop longue."),
+    typeBien: z.string().optional(),
+    surface: z.number().optional(),
+    dpe: z.string().optional(),
+    pptVote: z.boolean().nullable().optional(),
 });
 
-export async function GET(request: Request) {
-    const { searchParams } = new URL(request.url);
-    const parsed = estimateQuerySchema.safeParse(Object.fromEntries(searchParams));
+export async function POST(request: Request) {
+    const body = await request.json();
+    const parsed = estimateQuerySchema.safeParse(body);
 
     if (!parsed.success) {
         return NextResponse.json(
@@ -20,7 +24,7 @@ export async function GET(request: Request) {
         );
     }
 
-    const { adresse } = parsed.data;
+    const { adresse, typeBien, surface, dpe: wizardDpe, pptVote } = parsed.data;
 
     try {
         // ─── Step 1: Geocode ───
@@ -54,8 +58,8 @@ export async function GET(request: Request) {
             }),
         ]);
 
-        // Pick the best DPE match (most recent)
-        const dpe =
+        // Pick the best DPE match (most recent), OR override with wizard DPE
+        let dpe =
             dpeResults.length > 0
                 ? dpeResults.sort(
                     (a, b) =>
@@ -64,10 +68,15 @@ export async function GET(request: Request) {
                 )[0]
                 : null;
 
+        if (wizardDpe) {
+            dpe = { ...dpe, classe_estimation_dpe: wizardDpe } as any;
+        }
+
         // ─── Step 4: Process & Calculate ───
         const transactions = processTransactions(mutations, dpe);
         const synthese = computeSynthese(transactions, dpe);
         const neighborhood = await computeNeighborhoodScore({ lat: ban.lat, lon: ban.lon });
+        const shap_analysis = computeShapMock(synthese, parsed.data);
 
         const warnings: string[] = [];
 
@@ -84,6 +93,7 @@ export async function GET(request: Request) {
             transactions,
             synthese,
             neighborhood: neighborhood || undefined,
+            shap_analysis,
             warnings: warnings.length > 0 ? warnings : undefined,
         };
 

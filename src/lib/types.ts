@@ -69,6 +69,20 @@ export interface TransactionAnalysis {
     has_dpe: boolean;
 }
 
+export interface ShapValue {
+    feature: string;
+    impact_value: number;
+    description: string;
+}
+
+export interface ShapAnalysis {
+    prix_base: number;
+    prix_estime: number;
+    intervalle_min: number;
+    intervalle_max: number;
+    explications_shap: ShapValue[];
+}
+
 export interface EstimationResult {
     adresse: string;
     ban: BanResult;
@@ -89,6 +103,7 @@ export interface EstimationResult {
     };
     neighborhood?: NeighborhoodScore;
     warnings?: string[];
+    shap_analysis?: ShapAnalysis;
 }
 
 export interface NeighborhoodAmenity {

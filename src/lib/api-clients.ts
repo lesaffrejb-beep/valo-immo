@@ -176,6 +176,7 @@ export async function geocodeAddress(
     );
 
     return mapped
+        .filter((r: BanResult) => r.postcode.startsWith("49"))
         .sort((a: BanResult, b: BanResult) => rankBanResult(query, b) - rankBanResult(query, a))
         .slice(0, limit);
 }
