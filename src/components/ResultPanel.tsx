@@ -9,6 +9,7 @@ import { computeSynthese } from "@/lib/calculation-engine";
 import dynamic from "next/dynamic";
 import DossierActions from "./DossierActions";
 import NeighborhoodScoreCard from "./NeighborhoodScoreCard";
+import LiveMarketCard from "./LiveMarketCard";
 
 const MapWidget = dynamic(() => import("./MapWidget"), {
     ssr: false,
@@ -80,7 +81,15 @@ export default function ResultPanel({ result }: { result: EstimationResult }) {
                 </div>
             )}
 
-            {/* Waterfall SHAP (Modèle XGBoost) */}
+
+            {result.live_market && (
+                <LiveMarketCard
+                    liveMarket={result.live_market}
+                    dvfMedianPriceM2={result.synthese.prix_m2_corrige_median}
+                />
+            )}
+
+                        {/* Waterfall SHAP (Modèle XGBoost) */}
             {result.shap_analysis && (
                 <ShapWaterfall analysis={result.shap_analysis} />
             )}
