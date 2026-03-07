@@ -45,10 +45,10 @@ Consolider la donnée pour donner encore plus d'armes à l'agent avant sa visite
 - *Besoin :* L'agent veut conserver son travail.
 - *Feature :* Possibilité de sauvegarder une *SyntheseCard* dans un compte utilisateur, générer un lien partageable avec expiration (pour créer un sentiment d'urgence chez l'acheteur).
 
-### 5. Analyse Isochrone & Attractivité (Score de Quartier)
+### 5. Analyse Isochrone & Attractivité (Score de Quartier) (Complété)
 
 - *Besoin :* Un quartier se vend sur sa desserte et ses commodités, pas juste au m².
-- *Feature :* Connexion à l'API Overpass (OpenStreetMap) ou Google Places pour calculer dynamiquement un score sur 10 basé sur la proximité à pied (< 5 ou 10 minutes) des écoles, commerces de bouche et du réseau de transport lourd (Métro/Tram).
+- *Feature livrée :* Connexion Overpass (OpenStreetMap), calcul d'un score global /10 + sous-scores (transports, écoles, commerces alimentaires), comptage des commodités à 5/10 minutes à pied, et sélection des points d'appui visite les plus proches directement visibles côté agent.
 
 ### 6. Valorisation Avancée des Appartements
 
