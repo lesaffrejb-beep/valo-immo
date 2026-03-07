@@ -90,20 +90,20 @@ function SegmentedControl({
     onChange: (val: number) => void;
 }) {
     return (
-        <div className="flex p-1 bg-secondary/50 rounded-xl border border-border/50 w-full overflow-hidden">
+        <div className="flex flex-wrap gap-2 w-full">
             {options.map((opt) => {
                 const isActive = value === opt.value;
                 return (
                     <button
                         key={opt.label}
                         onClick={() => onChange(opt.value)}
-                        className={`flex-1 flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 py-2 px-1 rounded-lg text-[10px] sm:text-xs font-bold transition-all text-center leading-tight min-w-0 ${isActive
-                            ? "bg-card text-primary shadow-sm ring-1 ring-border"
-                            : "text-muted-foreground hover:text-foreground hover:bg-black/5"
+                        className={`flex items-center gap-1.5 py-1.5 px-3.5 rounded-full text-[11px] sm:text-xs font-bold transition-all border ${isActive
+                            ? "bg-primary text-white border-primary shadow-md"
+                            : "bg-card text-muted-foreground border-border hover:border-primary/50 hover:text-foreground shadow-sm"
                             }`}
                     >
-                        <span className="shrink-0">{opt.icon}</span>
-                        <span className="truncate w-full">{opt.label}</span>
+                        <span className={`shrink-0 ${isActive ? "text-white/80" : ""}`}>{opt.icon}</span>
+                        <span>{opt.label}</span>
                     </button>
                 );
             })}
@@ -685,6 +685,73 @@ export default function SyntheseCard({ result }: { result: EstimationResult }) {
                             </div>
                         </div>
 
+                    </div>
+                )}
+
+                {/* --- MODULE SCORE DE QUARTIER (À VENIR) --- */}
+                {isValuable && (
+                    <div className="pt-8 border-t border-border">
+                        <div className="bg-linear-to-br from-card to-card/50 rounded-2xl border border-border overflow-hidden relative group/poi">
+                            {/* Blur effect on hover to indicate it's locked */}
+                            <div className="absolute inset-0 bg-background/80 backdrop-blur-[2px] z-10 flex flex-col items-center justify-center opacity-0 group-hover/poi:opacity-100 transition-opacity duration-300">
+                                <span className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-full font-bold text-sm shadow-xl">
+                                    <Sparkles className="h-4 w-4" /> Bientôt disponible
+                                </span>
+                                <p className="text-xs font-medium text-muted-foreground mt-3 max-w-sm text-center px-4">
+                                    L&apos;analyse isochrone connectée dévoilera l&apos;attractivité réelle du micro-marché (Écoles, Transports, Santé).
+                                </p>
+                            </div>
+
+                            <div className="p-8">
+                                <div className="flex items-start justify-between mb-8 opacity-60">
+                                    <div className="flex items-center gap-3">
+                                        <div className="p-2.5 bg-secondary rounded-xl text-muted-foreground">
+                                            <MapPin className="h-5 w-5" />
+                                        </div>
+                                        <div>
+                                            <h4 className="text-base font-bold text-foreground tracking-tight">Attractivité & Score de Quartier</h4>
+                                            <p className="text-xs text-muted-foreground font-medium mt-0.5">Analyse isochrone à 10 min à pied (Base OpenStreetMap)</p>
+                                        </div>
+                                    </div>
+                                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest border border-border px-2 py-1 rounded-md bg-secondary/50">
+                                        À Venir
+                                    </span>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 opacity-40 grayscale">
+                                    <div className="space-y-3">
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Éducation</span>
+                                            <span className="font-data font-bold text-foreground">9/10</span>
+                                        </div>
+                                        <div className="h-1.5 w-full bg-border rounded-full overflow-hidden">
+                                            <div className="h-full bg-primary rounded-full w-[90%]" />
+                                        </div>
+                                        <p className="text-[11px] text-muted-foreground">3 écoles, 1 collège à moins de 500m.</p>
+                                    </div>
+                                    <div className="space-y-3">
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Transports</span>
+                                            <span className="font-data font-bold text-foreground">6/10</span>
+                                        </div>
+                                        <div className="h-1.5 w-full bg-border rounded-full overflow-hidden">
+                                            <div className="h-full bg-primary rounded-full w-[60%]" />
+                                        </div>
+                                        <p className="text-[11px] text-muted-foreground">Accès bus moyen. Peu de transports lourds.</p>
+                                    </div>
+                                    <div className="space-y-3">
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Commodités</span>
+                                            <span className="font-data font-bold text-foreground">8/10</span>
+                                        </div>
+                                        <div className="h-1.5 w-full bg-border rounded-full overflow-hidden">
+                                            <div className="h-full bg-primary rounded-full w-[80%]" />
+                                        </div>
+                                        <p className="text-[11px] text-muted-foreground">Boulangeries, pharmacies et supermarchés proches.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 )}
 

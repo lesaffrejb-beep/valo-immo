@@ -1,6 +1,6 @@
 import type { BanResult, DvfMutation, DpeResult } from "./types";
 
-const BAN_BASE = "https://api-adresse.data.gouv.fr";
+const BAN_BASE = "https://data.geopf.fr/geocodage";
 // DVF+ Cerema — open data API géolocalisée (fiable, open data Etalab)
 const DVF_CEREMA = process.env.DVF_API_BASE || "https://apidf-preprod.cerema.fr/dvf_opendata/geomutations/";
 const DPE_BASE =
@@ -194,10 +194,11 @@ export async function fetchDvfMutations(params: {
     }
 
     const bbox = toBbox(params.lat, params.lon, params.dist || 500);
-    const url = `${DVF_CEREMA}?in_bbox=${bbox}&page_size=100`;
+    const minYear = new Date().getFullYear() - 5;
+    const url = `${DVF_CEREMA}?in_bbox=${bbox}&anneemut_min=${minYear}&page_size=500`;
 
     try {
-        const res = await fetchWithTimeout(url, 8000);
+        const res = await fetchWithTimeout(url, 10000);
         if (!res.ok) {
             throw new Error(`[DVF] ${DVF_CEREMA} returned ${res.status}`);
         }

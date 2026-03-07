@@ -69,8 +69,9 @@ export default function SearchBar({ onSelect, isLoading = false }: SearchBarProp
     }, [query, fetchSuggestions]);
 
     const handleSelect = (result: BanResult) => {
-        selectedRef.current = result.label;
-        setQuery(formatSuggestionTitle(result));
+        const formatted = formatSuggestionTitle(result);
+        selectedRef.current = formatted;
+        setQuery(formatted);
         setSuggestions([]);
         setIsOpen(false);
         setActiveIndex(-1);

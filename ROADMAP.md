@@ -45,6 +45,16 @@ Consolider la donnée pour donner encore plus d'armes à l'agent avant sa visite
 - *Besoin :* L'agent veut conserver son travail.
 - *Feature :* Possibilité de sauvegarder une *SyntheseCard* dans un compte utilisateur, générer un lien partageable avec expiration (pour créer un sentiment d'urgence chez l'acheteur).
 
+### 5. Analyse Isochrone & Attractivité (Score de Quartier)
+
+- *Besoin :* Un quartier se vend sur sa desserte et ses commodités, pas juste au m².
+- *Feature :* Connexion à l'API Overpass (OpenStreetMap) ou Google Places pour calculer dynamiquement un score sur 10 basé sur la proximité à pied (< 5 ou 10 minutes) des écoles, commerces de bouche et du réseau de transport lourd (Métro/Tram).
+
+### 6. Valorisation Avancée des Appartements
+
+- *Besoin :* Le marché des appartements obéit à des règles de copropriété et d'étage spécifiques.
+- *Feature :* Filtrage strict par type de local. Analyse comparative au sein du *même immeuble* (même numéro de voie). Pondérations dynamiques interactives pour l'étage (ex: RDC = -10%, dernier étage = +10%) et la présence d'un ascenseur.
+
 ---
 
 ## 🟠 Moyen-Terme : "IA & Génération de Discours"

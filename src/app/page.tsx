@@ -10,7 +10,7 @@ const ResultPanel = dynamic(() => import("@/components/ResultPanel"), {
   loading: () => <div className="p-12 text-center text-[var(--muted-foreground)] flex items-center justify-center gap-2"><Loader2 className="animate-spin h-5 w-5" /> Initialisation de l&apos;environnement d&apos;expertise...</div>,
 });
 
-const FAQ = dynamic(() => import("@/components/FAQ"));
+const FAQ = dynamic(() => import("@/components/FAQ"), { ssr: false });
 
 type AppState =
   | { status: "idle" }

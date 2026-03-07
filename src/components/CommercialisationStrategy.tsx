@@ -149,9 +149,11 @@ export default function CommercialisationStrategy({ valeurNetteEstimee }: Commer
                                     <CheckCircle2 className="h-6 w-6 text-primary print:text-black" />
                                 </div>
                                 <div className="flex-1">
-                                    <div className="flex justify-between items-baseline mb-1">
-                                        <h4 className="text-sm font-bold text-primary print:text-black">Positionnement Commercial Recommandé F.A.I</h4>
-                                        <span className="font-data text-3xl font-black text-primary tracking-tight print:text-black">{prixFaiOptimise.toLocaleString("fr-FR")} <span className="text-xl font-serif italic text-primary/70 print:text-gray-600">€</span></span>
+                                    <div className="flex flex-col sm:flex-row justify-between sm:items-baseline mb-2 sm:mb-1 gap-1">
+                                        <h4 className="text-sm font-bold text-primary print:text-black leading-tight max-w-xs">Positionnement Commercial Recommandé F.A.I</h4>
+                                        <span className="font-data text-3xl font-black text-primary tracking-tight whitespace-nowrap print:text-black">
+                                            {prixFaiOptimise.toLocaleString("fr-FR")}&nbsp;<span className="text-xl font-serif italic text-primary/70 print:text-gray-600">€</span>
+                                        </span>
                                     </div>
                                     <p className="text-xs font-medium text-primary/80 leading-relaxed print:text-gray-700">
                                         Ce prix optimise votre visibilité sur les portails immobiliers en ciblant le seuil psychologique optimal.

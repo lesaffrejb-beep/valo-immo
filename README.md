@@ -15,6 +15,7 @@ TrueSquare est une PropTech B2B qui redonne le pouvoir à l'agent immobilier. En
 - **Scoring de Liquidité (Style Microsoft) :** Analyse de la rotation du parc immobilier pour statuer sur la tension du marché local et le délai de vente.
 - **Ajustements Hédonistes :** L'agent sculpte le prix en modifiant dynamiquement l'état du bien, les extérieurs et la vue.
 - **Rénovation Énergétique :** Détection d'un DPE Passoire (E, F ou G) et application automatique d'une décote travaux chiffrée.
+- **Micro-Marché & Isochrones :** Analyse de la proximité des commodités (écoles, transports) et calcul des pondérations d'étage pour les appartements (À venir).
 
 ## 🛠 Stack Technique
 
@@ -34,7 +35,6 @@ npm run dev
 ```
 
 Rendez-vous sur [http://localhost:3000](http://localhost:3000)
-
 
 ## 🧠 Comment fonctionne le moteur de calcul (version humaine)
 

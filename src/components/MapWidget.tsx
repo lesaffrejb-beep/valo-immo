@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
@@ -47,7 +47,23 @@ function ChangeView({ center }: { center: [number, number] }) {
 }
 
 export default function MapWidget({ result, excludedIds, onToggleExclusion }: { result: EstimationResult, excludedIds?: Set<string>, onToggleExclusion?: (id: string) => void }) {
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+        return () => setMounted(false);
+    }, []);
+
     const targetCenter: [number, number] = [result.ban.lat, result.ban.lon];
+
+    if (!mounted) {
+        return (
+            <div className="w-full h-[400px] rounded-2xl bg-muted/30 animate-pulse border border-border flex items-center justify-center">
+                <p className="text-sm font-medium text-muted-foreground">Chargement de la carte...</p>
+            </div>
+        );
+    }
+
     return (
         <div className="w-full h-[400px] rounded-2xl overflow-hidden border border-border bg-card shadow-sm relative z-0">
             <MapContainer
@@ -126,8 +142,8 @@ export default function MapWidget({ result, excludedIds, onToggleExclusion }: { 
                                                 onToggleExclusion(txId);
                                             }}
                                             className={`w-full mt-3 py-1.5 rounded-md text-xs font-bold transition-colors ${isExcluded
-                                                    ? "bg-primary text-primary-foreground hover:bg-primary/90"
-                                                    : "bg-muted text-muted-foreground hover:bg-muted-foreground hover:text-background"
+                                                ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                                                : "bg-muted text-muted-foreground hover:bg-muted-foreground hover:text-background"
                                                 }`}
                                         >
                                             {isExcluded ? "Ré-inclure au calcul" : "Exclure l'anomalie"}
