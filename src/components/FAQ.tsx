@@ -26,6 +26,10 @@ const faqs = [
     {
         question: "S'agit-il d'un avis de valeur officiel juridiquement opposable ?",
         answer: "Non. TrueSquare fournit une estimation statistique indicative pour appuyer vos rendez-vous commerciaux. Elle ne constitue en aucun cas une expertise officielle ou un avis de valeur contractuel pouvant être utilisé dans des litiges judiciaires ou déclarations fiscales."
+    },
+    {
+        question: "Pourquoi êtes-vous plus précis que les mastodontes (MeilleursAgents, SeLoger) ?",
+        answer: "Ces plateformes utilisent une approche macro-économique généraliste diluée sur toute la France. Notre philosophie est 100% hyper-locale et concentrée sur le Maine-et-Loire (49). Nous croisons les ventes DVF avec des « signaux faibles » que ces mastodontes ignorent : Plan Local d'Urbanisme intercommunal (PLUi) d'Angers, temps de trajet piéton vers le Tramway B/C, ou encore cartes de nuisances sonores (Lden). Cela vous offre une précision chirurgicale et un storytelling imparable en rendez-vous."
     }
 ];
 

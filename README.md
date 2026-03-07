@@ -1,149 +1,104 @@
-# TrueSquare V6 - Estimateur Hyper-Local (Maine-et-Loire 49)
+# TrueSquare V6 - Estimateur Immobilier Hyper-Local (Maine-et-Loire 49)
 
-**⚠️ Stratégie de développement : Avant de penser national, l'outil est "hard focus" sur le département du Maine-et-Loire (49). Il n'y a pas besoin de charger ou de télécharger les données massives de la France entière.**
+**⚠️ FOCUS STRATÉGIQUE (LLM & Human Context) :**
+L'application est **strictement "hard focus" sur le département du Maine-et-Loire (49)**, et particulièrement Angers Loire Métropole.
+La philosophie est d'assimiler massivement des "signaux faibles" géospatiaux locaux (tramway, nuisances, PLUi) ignorés par les concurrents nationaux. Il n'y a **aucun intérêt** à charger les données entières de la France ni à appliquer des modèles génériques. Le but est de créer le Terminal Bloomberg de l'immobilier résidentiel angevin.
 
-**Le moteur de valorisation premium, transparent et interactif pour les professionnels de l'immobilier du bassin Angevin.**
+![TrueSquare Concept](https://img.shields.io/badge/Status-Beta_V6-brass?style=for-the-badge) ![Tech](https://img.shields.io/badge/Next.js-14-black?style=for-the-badge&logo=next.js) ![Styling](https://img.shields.io/badge/TailwindCSS-v3-blue?style=for-the-badge&logo=tailwindcss) ![Database](https://img.shields.io/badge/Supabase-PostGIS-green?style=for-the-badge&logo=supabase)
 
-![TrueSquare Concept](https://img.shields.io/badge/Status-Beta_V6-brass?style=for-the-badge) ![Tech](https://img.shields.io/badge/Next.js-14-black?style=for-the-badge&logo=next.js) ![Styling](https://img.shields.io/badge/TailwindCSS-v3-blue?style=for-the-badge&logo=tailwindcss)
+TrueSquare est une PropTech B2B de neuro-vente premium qui redonne le pouvoir à l'agent immobilier. En croisant la donnée brute irréfutable de l'État (DVF, DPE) avec la géographie hyper-locale (PostGIS) et l'intelligence terrain de l'expert, l'application génère des dossiers d'estimation interactifs d'un niveau de détails et de prestige inédit pour garantir la captation du mandat exclusif.
 
-TrueSquare est une PropTech B2B qui redonne le pouvoir à l'agent immobilier. En croisant la donnée brute irréfutable de l'État (DVF, DPE) avec l'intelligence terrain de l'expert, l'application génère des dossiers d'estimation interactifs d'un niveau de détails et de prestige inédit.
+---
 
 ## 🚀 Fonctionnalités "Big Tech Edition" (V6)
 
-- **Transparence Absolue (DVF & DPE) :** Interrogation en temps réel des bases de données de l'État sur le territoire angevin.
-- **Micro-Marché Hyper-Local (49) :** Croisement spatial (PostGIS) du PLUi d'Angers Loire Métropole et isochrones (Lignes de Tramway B/C, Ecoles, Nuisances sonores).
-- **Moteur G-XGBoost & Explicabilité SHAP :** Remplacement de la médiane naïve par une prédiction ML avec "Waterfall Plot" d'explicabilité pour chaque feature.
-- **Rapport d'Expertise Cinematic (Style Apple) :** Un mode présentation plein-écran luxueux figeant les paramètres pour l'export PDF "Private Banking".
-- **Stress-Test Acheteur (Style PayPal) :** Simulation financière ultra-rapide (Apport, Taux, Cashflow) pour démontrer la capacité d'emprunt.
-- **Scoring de Liquidité (Style Microsoft) :** Analyse de la rotation du parc immobilier pour statuer sur la tension du marché local et le délai de vente.
-- **Ajustements Réglementaires & Hédonistes :** Décotes chiffrées automatiques sur la Loi Climat (Passoires DPE) et le risque Loi Alur (Absence de PPT en copropriété). L'agent sculpte également le prix en modifiant dynamiquement l'état du bien, les extérieurs et la vue.
-- **Rénovation Énergétique :** Détection d'un DPE Passoire (E, F ou G) et application automatique d'une décote travaux chiffrée.
-- **Micro-Marché & Isochrones (49) :** Score de quartier dynamique sur 10 (transports, écoles, commerces alimentaires) basé sur les données d'Angers Loire Métropole. Points d'appui visite prêts à pitcher en rendez-vous.
+- **Transparence Absolue (DVF & DPE) :** Interrogation en temps réel des bases de l'État sur le territoire angevin. Exclusions d'outliers style "Airbnb" contrôlées par l'agent.
+- **Rapport d'Expertise Cinematic (Style Apple) :** Mode présentation plein-écran ultra-luxueux. UI minimaliste figeant les paramètres pour un export PDF digne du "Private Banking".
+- **Micro-Marché Hyper-Local (Isochrones) :** Évaluation dynamique d'un `global_score` /10 du quartier. Analyse spatiale de proximité stricte (Overpass OSM / PostGIS) pour les écoles, commerces, et calcul de distance aux Tramways B/C, fournissant des "points d'appui" verbaux immédiats pour la visite.
+- **Stress-Test Acheteur (Style PayPal) :** Simulation financière instantanée (Apport, Taux, Cashflow, Loyers) pour prouver l'attractivité d'un bien en rendement ou démontrer la fiabilité d'un acquéreur potentiel.
+- **Scoring de Liquidité (Style Microsoft) :** Analyse de la rotation du parc immobilier local (nombre de mutations par zone) pour estimer visuellement la tension du marché et projeter le délai de vente.
+- **Intelligence Réglementaire & Environnementale :**
+  - Décotes chiffrées automatiques sur la Loi Climat (Passoires DPE F/G implique décote rénovation).
+  - Évaluation d'impact géospatial (Lden Nuisances sonores, zones PLUi restrictives).
+- **Moteur G-XGBoost & Explicabilité SHAP :** Transition d'une médiane pure vers du Machine Learning prédictif. Le "Waterfall Plot" permet d'expliquer au vendeur *pourquoi* son bien vaut tel prix, brique par brique.
 
-## 🛠 Stack Technique (V6 Architecture)
+---
 
-- **Frontend Tunnel :** Next.js 14 (App Router) + Tailwind CSS (UI Premium)
-- **Backend Data & Géospatial :** Supabase (PostgreSQL + PostGIS) (DVF, PLUi, Isochrones)
-- **Moteur Machine Learning :** Microservice FastAPI Python (G-XGBoost + SHAP)
-- **Data Ingestion :** Next.js API Route Cron + Supabase RPC (ingestion GeoJSON Angers)
-- **Composants :** UI ultra-légère (from scratch)
+## 🛠 Architecture & Stack Technique
 
-## 📦 Lancement Local
+L'architecture est fondamentalement scindée entre la restitution front-end hyper rapide et l'ingestion/interrogation géospatiale lourde en back-end.
+
+- **Frontend Tunnel (Vercel) :** Next.js 14 (App Router) + Tailwind CSS + Radix UI. Interfaces pensées "composants" et interactives, maximisant le framerate et minimisant la friction (Méthode de l'escalier).
+- **Backend Data & Géospatial (Supabase) :** PostgreSQL étendu avec **PostGIS**. C'est le cœur du réacteur hyper-local. Les tables stockent les DVF, les emprises du PLUi Angers, les isochrones de transport et les cartes de bruit.
+- **Ingestion Automatisée (Cron API) :** Les GeoJSON massifs open-data d'Angers sont ingérés automatiquement (idempotence `ON CONFLICT`) via une API Route Next.js invoquant la fonction RPC native Supabase `ingest_angers_feature_collection`. Zéro dépendance à n8n.
+- **Service ML Appliqué (Python) :** Microservice FastAPI gérant l'inférence G-XGBoost et renvoyant les vecteurs SHAP, appelé via l'API Next.js.
+
+---
+
+## 🗺️ Qualité et Robustesse Supabase (Pour LLMs & Devs)
+
+Le backend Supabase du projet est certifié **Production-Ready** pour des volumes locaux conséquents. L'architecture SQL inclut :
+
+1. **Extensions natives activées** : `postgis` pour les intersections spatiales, `pgcrypto` pour le hashing/UUIDs.
+2. **Typage Géométrique Strict** : Utilisation de `geometry(MultiPolygon, 4326)` et `geometry(Point, 4326)` pour garantir des requêtes ST_Intersects ultra-performantes.
+3. **Indexation spatiale (GIST)** : Présente sur toutes les tables de géodonnées (`data_dvf`, `geo_plui`, `geo_isochrones`, `geo_nuisances`), garantissant de faibles temps de latence au requêtage API.
+4. **Logique Métier Encapsulée (RPC)** : Le point d'entrée API principal consomme la fonction RPC `get_parcel_features(lng, lat)`, évitant l'envoi de requêtes SQL complexes depuis le client et garantissant un temps de réponse bas.
+5. **Fiabilisation des ingestions** : L'API Cron Next.js attaque Supabase via Service Role, validant en transactionnel des `FeatureCollection` complets, assurant l'idempotence des géométries mises à jour.
+
+> Les scripts liés à la base se trouvent dans `database/schema.sql` (création) et `database/ingestion_angers_cron.sql` (fonctions d'ingestion).
+
+---
+
+## 📦 Runbook Local
 
 ```bash
+# 1. Cloner et installer
 git clone https://github.com/votre-nom/true-square.git
 cd true-square
 npm install
+
+# 2. Variable d'environnement (ex: Supabase keys)
+cp .env.example .env.local
+
+# 3. Lancement
 npm run dev
 ```
 
 Rendez-vous sur [http://localhost:3000](http://localhost:3000)
 
-## 🧠 Comment fonctionne le moteur de calcul (version humaine)
+*(Assurez-vous que votre base Supabase soit provisionnée avec les scripts du dossier `database/`).*
 
-Voici le calcul expliqué simplement, pour quelqu'un d'extérieur :
+---
 
-1. **On trouve l'adresse exacte** avec la BAN (Base Adresse Nationale).
-2. **On récupère les ventes DVF autour du bien** (rayon local) et le DPE du bien si disponible.
-3. **On garde uniquement les ventes pertinentes et récentes** (biens résidentiels, prix/surface valides, et transactions des 5 dernières années).
-4. **On calcule 2 prix au m²** :
-   - `naïf` = prix / surface DVF brute
-   - `corrigé` = prix ajusté (ex: garage retiré en forfait) / surface pondérée
-5. **On prend la médiane** pour éviter qu'une vente extrême fausse tout le résultat.
-6. **On calcule un score de confiance** basé sur : présence DPE, nombre de comparables, fraîcheur des ventes.
+## 🧭 Philosophie Produit (Le Manuel du Directeur d'Agence)
 
-Résultat : un prix lisible, argumentable, et moins sensible aux anomalies de terrain.
+TrueSquare suit une ligne directrice impitoyable : **moins de bruit, plus de décisions**.
 
-## ✅ Fiabilisation mise en place
+- **L'Approche Apple (Premium & Clarté) :** Une UI qui retire la charge cognitive. Finis les tableaux Excel incompressibles ; la data d'État est retraitée en signaux lisibles.
+- **L'Approche Airbnb (Confiance Transparente) :** L'agent montre la data brute, contrôle les filtres de fraîcheur, inclut/exclut en direct face au vendeur. Le "pourquoi" du prix est incontestable.
+- **Impact Terrain B2B :** Chaque brique développée a pour finalité :
+  1. Gagner l'exclusivité du mandat en sidérant le prospect.
+  2. Justifier une baisse de prix de présentation en se référant aux anomalies locales (nuisances, décote DPE).
+  3. Fournir à l'agent des punchlines (points d'intérêt à 5min) factuelles.
 
-- **Filtre de fraîcheur** : les mutations trop anciennes (> 5 ans) sont exclues du moteur.
-- **Garde-fous mathématiques** : arrondis robustes (`NaN` / `Infinity` neutralisés).
-- **Signal qualité intégré** dans la synthèse API :
-  - `stale_data` (donnée potentiellement vieillissante),
-  - `sample_size_ok` (échantillon statistiquement acceptable),
-  - `has_dpe` (présence de source énergétique fiable).
+---
 
-## 🔐 Architecture cible
+## 🛣️ Roadmap & Vision
 
-L'architecture sépare strictement le backend transactionnel/data (Supabase/PostGIS) du runtime de calcul intensif (FastAPI/XGBoost), offrant :
+Les fonctionnalités prévues sont classées par priorité de chiffre d'affaires potentiel pour les agences :
 
-- Scalabilité pour l'ingestion massive des DVF et PLUi.
-- Performances dédiées pour la génération arborescente SHAP, impossible sur Edge Functions Vercel/Supabase.
+- Intégration des annonces actives concurrentes par Web-Scraping (Comparaison Vendu vs À Vendre).
+- Micro-Pricing des copropriétés : Ajustement fin des décotes ascenseurs/étages/extérieurs.
+- CRM et Cockpit Directeur V2 : Statistiques fines de conversion par négociateur, persistance et liens éphémères de rapports (création d'urgence).
 
-## 🗺 Vision & Roadmap
+*Consultez [`ROADMAP.md`](./ROADMAP.md) pour la priorisation exhaustive des tâches et [`docs/ARCHITECTURE_HYPER_LOCALE.md`](./docs/ARCHITECTURE_HYPER_LOCALE.md) pour l'approche mathématique.*
 
-Découvrez la philosophie du projet dans le document [L'ÂME DE TRUESQUARE](./L_AME.md) et consultez le futur de l'application dans la [ROADMAP](./ROADMAP.md).
+---
 
-## 🧱 Opérations Data Hyper-Locale (Angers)
+## 🗂 Règle d'or de Contribution
 
-- Schéma PostGIS prêt Supabase : [`database/schema.sql`](./database/schema.sql)
-- Script SQL d'ingestion copy/paste : [`database/ingestion_angers_data.sql`](./database/ingestion_angers_data.sql)
-- Fonction SQL RPC d'ingestion cron : [`database/ingestion_angers_cron.sql`](./database/ingestion_angers_cron.sql)
-- API route cron sécurisée : [`src/app/api/cron/ingest-angers-data/route.ts`](./src/app/api/cron/ingest-angers-data/route.ts)
-- Planification Vercel Cron : [`vercel.json`](./vercel.json)
-- Runbook humain (Supabase + Cron Next.js) : [`docs/operations/INGESTION_ANGERS_SUPABASE_N8N.md`](./docs/operations/INGESTION_ANGERS_SUPABASE_N8N.md)
-- Revue critique architecture/exécution : [`docs/ARCHITECTURE_EXECUTION_REVIEW.md`](./docs/ARCHITECTURE_EXECUTION_REVIEW.md)
+Pour tout développeur ou LLM opérant sur ce repo :
 
-## 🧭 Philosophie Produit (version Directeur d'Agence)
-
-TrueSquare suit une philosophie simple : **moins de bruit, plus de décisions**.
-
-- **Approche Apple (clarté premium)** : une interface qui retire la complexité inutile, met en avant les signaux clés, et transforme un calcul en décision immédiate.
-- **Approche Airbnb (confiance par la transparence)** : l'utilisateur voit les preuves (comparables, filtres, qualité data), contrôle les exclusions, et comprend instantanément le “pourquoi” du prix.
-- **Approche terrain immobilier** : chaque fonctionnalité doit améliorer au moins un des 3 leviers agence :
-  1. prise de mandat,
-  2. vitesse de conversion,
-  3. pilotage du portefeuille.
-
-En pratique : TrueSquare n'est pas un gadget d'estimation. C'est un **système d'aide au closing** pour agents et directeurs.
-
-## 🧠 Lecture pour Humains ET LLMs
-
-### Entrées métier
-
-- Adresse BAN (géocodage)
-- Transactions DVF
-- DPE (quand disponible)
-
-### Sorties métier
-
-- Prix/m² médian corrigé
-- Indice de confiance
-- Warnings qualité
-- Dossier partageable (expiration)
-- Pipeline directeur (portefeuille statuts)
-
-### Nouveau module livré : Score de Quartier (Isochrone)
-
-**Pourquoi c'est stratégique (vision Directeur d'Agence)**
-
-- **Urgence marché :** les vendeurs et acquéreurs arbitrent aujourd'hui la valeur sur le confort de vie réel (mobilité, écoles, commerces), pas seulement sur le m².
-- **Impact business :** l'agent arrive en visite avec des preuves concrètes de desserte pour accélérer la décision et réduire les objections.
-- **Différenciation :** discours instantané “data + terrain” rare chez les estimateurs classiques centrés uniquement sur l'historique DVF.
-
-**Ce qui a été implémenté**
-
-- Calcul backend d'un `global_score` /10 via Overpass (OpenStreetMap) sur un rayon piéton de 1 200 m.
-- Sous-scores lisibles par catégorie : `transport`, `schools`, `food` (0–10) + densité à 5 et 10 minutes à pied + distance du point le plus proche.
-- “Top amenities” (5 POI les plus proches) pour préparer un argumentaire de visite concret.
-- Exposition du score directement dans la réponse `/api/estimate` pour garantir la cohérence front/back.
-- Carte de restitution UI dédiée dans le flux principal de résultats (sans surcharge), avec fallback élégant si la source est indisponible.
-
-### Surfaces fonctionnelles principales
-
-- `src/app/page.tsx` : expérience agent (recherche + estimation).
-- `src/components/SyntheseCard.tsx` : moteur d'argumentaire visuel premium.
-- `src/components/DossierActions.tsx` : actions CRM (sauvegarde + partage + envoi portefeuille).
-- `src/app/agence/page.tsx` : cockpit directeur (KPIs + suivi statuts).
-- `src/app/api/portfolio/*` : API portefeuille agence (GET/POST/PATCH).
-- `src/lib/portfolio.ts` : persistance JSON locale du portefeuille.
-- `src/lib/neighborhood.ts` : moteur isochrone quartier (Overpass OSM, scoring 0–10).
-- `src/components/NeighborhoodScoreCard.tsx` : bloc UI “Score de Quartier” intégré à l'expérience agent.
-
-### Règle d'or d'évolution
-
-Toute nouvelle fonctionnalité doit répondre à :
-
-1. **Urgence terrain** (utilisable en rendez-vous dès maintenant),
-2. **Impact business** (mandat, conversion, productivité),
-3. **Différenciation** (preuve, transparence, expérience premium).
+1. Aucune donnée au niveau national n'est pertinente, tout doit servir **le marché local (49)**.
+2. Chaque nouvel équipement visuel doit respecter le **Design System** et rester minimaliste, utilisant strictement Tailwind.
+3. Les bases fondamentales restent et resteront la **BAN**, la base **DVF**, la base **DPE** (ADEME) et les data ouvertes de la Mairie (Data Angers).
