@@ -87,6 +87,7 @@ export interface EstimationResult {
             has_dpe: boolean;
         };
     };
+    warnings?: string[];
 }
 
 /* ─── API Response Wrappers ─── */

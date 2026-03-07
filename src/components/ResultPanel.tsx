@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { MapPin, Eye, EyeOff } from "lucide-react";
+import { MapPin, Eye, EyeOff, TriangleAlert } from "lucide-react";
 import type { EstimationResult } from "@/lib/types";
 import SyntheseCard from "./SyntheseCard";
 import { computeSynthese } from "@/lib/calculation-engine";
@@ -48,6 +48,20 @@ export default function ResultPanel({ result }: { result: EstimationResult }) {
 
     return (
         <div className="w-full max-w-4xl mx-auto space-y-6 animate-fade-in-up">
+            {result.warnings && result.warnings.length > 0 && (
+                <div className="rounded-2xl border border-amber-200 bg-amber-50/70 px-5 py-4 text-amber-900">
+                    <div className="flex items-start gap-3">
+                        <TriangleAlert className="h-5 w-5 mt-0.5 shrink-0" />
+                        <div className="space-y-1">
+                            <p className="text-sm font-bold">Données partielles</p>
+                            {result.warnings.map((warning) => (
+                                <p key={warning} className="text-sm font-medium text-amber-800/90">{warning}</p>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* 1. Carte de Synthèse principale */}
             <SyntheseCard
                 result={computedResult}

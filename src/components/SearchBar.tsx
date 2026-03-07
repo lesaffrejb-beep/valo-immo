@@ -9,6 +9,17 @@ interface SearchBarProps {
     isLoading?: boolean;
 }
 
+function titleCase(value: string): string {
+    return value
+        .toLowerCase()
+        .replace(/(^|\s|-|'|’)(\p{L})/gu, (m) => m.toUpperCase());
+}
+
+function formatSuggestionTitle(suggestion: BanResult): string {
+    const streetPart = `${suggestion.housenumber ? `${suggestion.housenumber} ` : ""}${suggestion.street}`.trim();
+    return `${titleCase(streetPart)}, ${suggestion.postcode} ${titleCase(suggestion.city)}`;
+}
+
 export default function SearchBar({ onSelect, isLoading = false }: SearchBarProps) {
     const [query, setQuery] = useState("");
     const [suggestions, setSuggestions] = useState<BanResult[]>([]);
@@ -21,22 +32,29 @@ export default function SearchBar({ onSelect, isLoading = false }: SearchBarProp
     const selectedRef = useRef<string>("");
 
     const fetchSuggestions = useCallback(async (q: string) => {
-        if (q.length < 3 || q === selectedRef.current) {
+        const cleaned = q.trim();
+        if (cleaned.length < 3 || cleaned === selectedRef.current) {
             setSuggestions([]);
             setIsOpen(false);
             return;
         }
+
         setIsFetching(true);
+
         try {
-            const res = await fetch(`/api/geocode?q=${encodeURIComponent(q)}&limit=6`);
+            const res = await fetch(`/api/geocode?q=${encodeURIComponent(cleaned)}&limit=6`);
             const json = await res.json();
-            if (json.success && json.data) {
+            if (json.success && Array.isArray(json.data)) {
                 setSuggestions(json.data);
-                setIsOpen(true);
+                setIsOpen(json.data.length > 0);
                 setActiveIndex(-1);
+            } else {
+                setSuggestions([]);
+                setIsOpen(false);
             }
         } catch {
             setSuggestions([]);
+            setIsOpen(false);
         } finally {
             setIsFetching(false);
         }
@@ -52,7 +70,7 @@ export default function SearchBar({ onSelect, isLoading = false }: SearchBarProp
 
     const handleSelect = (result: BanResult) => {
         selectedRef.current = result.label;
-        setQuery(result.label);
+        setQuery(formatSuggestionTitle(result));
         setSuggestions([]);
         setIsOpen(false);
         setActiveIndex(-1);
@@ -106,15 +124,18 @@ export default function SearchBar({ onSelect, isLoading = false }: SearchBarProp
                 <input
                     ref={inputRef}
                     id="address-search"
-                    type="search"
+                    type="text"
                     autoComplete="off"
                     spellCheck={false}
                     value={query}
-                    onChange={(e) => setQuery(e.target.value)}
+                    onChange={(e) => {
+                        selectedRef.current = "";
+                        setQuery(e.target.value);
+                    }}
                     onKeyDown={handleKeyDown}
                     onBlur={handleBlur}
                     onFocus={() => suggestions.length > 0 && setIsOpen(true)}
-                    placeholder="Saisissez l'adresse du bien cible..."
+                    placeholder="Ex: 20 rue Dupetit Thouars 49000 Angers"
                     className="flex-1 bg-transparent text-[var(--foreground)] placeholder:text-[var(--muted-foreground)] text-lg font-medium outline-none"
                     aria-label="Rechercher une adresse"
                     aria-autocomplete="list"
@@ -126,6 +147,7 @@ export default function SearchBar({ onSelect, isLoading = false }: SearchBarProp
                     <button
                         type="button"
                         onClick={() => {
+                            selectedRef.current = "";
                             setQuery("");
                             setSuggestions([]);
                             setIsOpen(false);
@@ -139,7 +161,6 @@ export default function SearchBar({ onSelect, isLoading = false }: SearchBarProp
                 )}
             </div>
 
-            {/* Suggestions Dropdown */}
             {isOpen && suggestions.length > 0 && (
                 <ul
                     ref={listRef}
@@ -155,20 +176,17 @@ export default function SearchBar({ onSelect, isLoading = false }: SearchBarProp
                             aria-selected={i === activeIndex}
                             onMouseDown={() => handleSelect(s)}
                             className={`
-                                flex items-start gap-4 px-5 py-4 cursor-pointer transition-colors
-                                ${i === activeIndex
-                                    ? "bg-primary/5"
-                                    : "hover:bg-[var(--muted)]/50"
-                                }
+                                flex items-start gap-4 px-5 py-3 cursor-pointer transition-colors
+                                ${i === activeIndex ? "bg-primary/5" : "hover:bg-[var(--muted)]/50"}
                                 ${i > 0 ? "border-t border-[var(--border)]" : ""}
                             `}
                         >
                             <MapPin className="h-5 w-5 mt-0.5 text-[var(--primary)] shrink-0" />
-                            <div className="flex flex-col">
-                                <span className="text-base font-semibold text-[var(--foreground)]">
-                                    {s.label}
+                            <div className="flex flex-col min-w-0">
+                                <span className="text-base font-semibold text-[var(--foreground)] truncate">
+                                    {formatSuggestionTitle(s)}
                                 </span>
-                                <span className="text-sm font-medium text-[var(--muted-foreground)] mt-0.5">
+                                <span className="text-sm font-medium text-[var(--muted-foreground)] mt-0.5 truncate">
                                     {s.context}
                                 </span>
                             </div>
