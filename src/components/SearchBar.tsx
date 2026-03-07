@@ -175,7 +175,7 @@ export default function SearchBar({ onSelect, isLoading = false }: SearchBarProp
     // --- RENDER STEPS ---
     if (step === 1) {
         return (
-            <div className="w-full max-w-2xl mx-auto space-y-6 animate-fade-in-up">
+            <div className="w-full max-w-2xl mx-auto space-y-6 animate-fade-in-up relative z-50">
                 <div
                     className={`flex items-center gap-3 rounded-2xl px-5 py-4 bg-card border-2 border-border transition-all duration-200 shadow-sm focus-within:border-primary focus-within:shadow-[0_0_0_4px_var(--color-primary)]/10 relative`}
                 >
