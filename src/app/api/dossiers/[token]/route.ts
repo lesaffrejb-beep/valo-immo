@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { getSharedDossier } from "@/lib/dossiers";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(_: Request, { params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;
   const shared = await getSharedDossier(token);
