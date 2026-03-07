@@ -6,6 +6,7 @@ import type { EstimationResult } from "@/lib/types";
 import SyntheseCard from "./SyntheseCard";
 import { computeSynthese } from "@/lib/calculation-engine";
 import dynamic from "next/dynamic";
+import DossierActions from "./DossierActions";
 
 const MapWidget = dynamic(() => import("./MapWidget"), {
     ssr: false,
@@ -66,6 +67,8 @@ export default function ResultPanel({ result }: { result: EstimationResult }) {
             <SyntheseCard
                 result={computedResult}
             />
+
+            <DossierActions result={computedResult} />
 
             {/* Cadastre Intégré */}
             <MapWidget
