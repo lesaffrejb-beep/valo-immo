@@ -174,15 +174,18 @@ export function processTransactions(
  */
 export function computeSynthese(
     analyses: TransactionAnalysis[],
-    dpe: DpeResult | null
+    dpe: DpeResult | null,
+    wizardData?: WizardData
 ) {
     if (analyses.length === 0) {
+        // Fallback générique si aucune donnée DVF dans le périmètre
+        const fallbackPrice = wizardData?.typeBien === 'appartement' ? 3200 : 2800;
         return {
-            prix_m2_naif_median: 0,
-            prix_m2_corrige_median: 0,
+            prix_m2_naif_median: fallbackPrice,
+            prix_m2_corrige_median: fallbackPrice,
             delta_median_pct: 0,
             nb_transactions: 0,
-            surface_reference: dpe?.surface_habitable_logement || 0,
+            surface_reference: dpe?.surface_habitable_logement || wizardData?.surface || 0,
             confiance: 0,
             quality: {
                 stale_data: true,
@@ -225,6 +228,7 @@ export function computeSynthese(
         nb_transactions: analyses.length,
         surface_reference:
             dpe?.surface_habitable_logement ||
+            wizardData?.surface ||
             round2(median(analyses.map((a) => a.weighted_surface.surface_habitable))),
         confiance,
         quality: {

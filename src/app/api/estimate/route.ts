@@ -80,7 +80,7 @@ export async function POST(request: Request) {
 
         // ─── Step 4: Process & Calculate ───
         const transactions = processTransactions(mutations, dpe);
-        const synthese = computeSynthese(transactions, dpe);
+        const synthese = computeSynthese(transactions, dpe, parsed.data);
         const [neighborhood, geoContext, liveMarket] = await Promise.all([
             computeNeighborhoodScore({ lat: ban.lat, lon: ban.lon }),
             fetchParcelFeatures({ lat: ban.lat, lng: ban.lon }),
