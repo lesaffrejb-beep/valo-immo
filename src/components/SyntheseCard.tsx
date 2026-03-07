@@ -90,20 +90,20 @@ function SegmentedControl({
     onChange: (val: number) => void;
 }) {
     return (
-        <div className="flex p-1 bg-secondary/50 rounded-xl border border-border/50">
+        <div className="flex p-1 bg-secondary/50 rounded-xl border border-border/50 w-full overflow-hidden">
             {options.map((opt) => {
                 const isActive = value === opt.value;
                 return (
                     <button
                         key={opt.label}
                         onClick={() => onChange(opt.value)}
-                        className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-xs font-bold transition-all ${isActive
+                        className={`flex-1 flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 py-2 px-1 rounded-lg text-[10px] sm:text-xs font-bold transition-all text-center leading-tight min-w-0 ${isActive
                             ? "bg-card text-primary shadow-sm ring-1 ring-border"
                             : "text-muted-foreground hover:text-foreground hover:bg-black/5"
                             }`}
                     >
-                        {opt.icon}
-                        {opt.label}
+                        <span className="shrink-0">{opt.icon}</span>
+                        <span className="truncate w-full">{opt.label}</span>
                     </button>
                 );
             })}
@@ -414,9 +414,9 @@ export default function SyntheseCard({ result }: { result: EstimationResult }) {
                                 value={etat}
                                 onChange={setEtat}
                                 options={[
-                                    { label: "À Rénover", value: -0.10, icon: <Drill className="h-3.5 w-3.5" /> },
-                                    { label: "Standard", value: 0, icon: <Minus className="h-3.5 w-3.5" /> },
-                                    { label: "Refait à neuf", value: 0.10, icon: <Sparkles className="h-3.5 w-3.5" /> }
+                                    { label: "À Rénover", value: -0.10, icon: <Drill className="h-3.5 w-3.5 shrink-0" /> },
+                                    { label: "Standard", value: 0, icon: <Minus className="h-3.5 w-3.5 shrink-0" /> },
+                                    { label: "Refait à neuf", value: 0.10, icon: <Sparkles className="h-3.5 w-3.5 shrink-0" /> }
                                 ]}
                             />
                         </div>
@@ -427,9 +427,9 @@ export default function SyntheseCard({ result }: { result: EstimationResult }) {
                                 value={exterieur}
                                 onChange={setExterieur}
                                 options={[
-                                    { label: "Aucun", value: 0, icon: <Minus className="h-3.5 w-3.5" /> },
-                                    { label: "Balcon", value: 0.05, icon: <TreePine className="h-3.5 w-3.5" /> },
-                                    { label: "Terrasse", value: 0.10, icon: <TreePine className="h-3.5 w-3.5" /> }
+                                    { label: "Aucun", value: 0, icon: <Minus className="h-3.5 w-3.5 shrink-0" /> },
+                                    { label: "Balcon", value: 0.05, icon: <TreePine className="h-3.5 w-3.5 shrink-0" /> },
+                                    { label: "Terrasse", value: 0.10, icon: <TreePine className="h-3.5 w-3.5 shrink-0" /> }
                                 ]}
                             />
                         </div>
@@ -441,8 +441,8 @@ export default function SyntheseCard({ result }: { result: EstimationResult }) {
                                 onChange={setVue}
                                 options={[
                                     { label: "Nuisance", value: -0.05, icon: <Eye className="h-3.5 w-3.5 opacity-50" /> },
-                                    { label: "Standard", value: 0, icon: <Minus className="h-3.5 w-3.5" /> },
-                                    { label: "Exceptionnelle", value: 0.10, icon: <Eye className="h-3.5 w-3.5" /> }
+                                    { label: "Standard", value: 0, icon: <Minus className="h-3.5 w-3.5 shrink-0" /> },
+                                    { label: "Exceptionnelle", value: 0.10, icon: <Eye className="h-3.5 w-3.5 shrink-0" /> }
                                 ]}
                             />
                         </div>

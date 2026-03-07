@@ -79,12 +79,6 @@ export default function Home() {
           <div className="max-w-5xl mx-auto px-6 flex flex-col items-center text-center">
             {state.status === "idle" && (
               <div className="animate-fade-in-up space-y-8">
-                <div className="inline-flex items-center gap-2 rounded-full border border-brass/20 bg-brass/5 px-5 py-2 mb-4 shadow-sm">
-                  <span className="h-1.5 w-1.5 rounded-full bg-brass animate-pulse" />
-                  <span className="text-[10px] font-black uppercase tracking-[0.2em] text-brass">
-                    Standards Institutionnels 2026
-                  </span>
-                </div>
                 <h1 className="text-5xl sm:text-6xl lg:text-7xl font-serif text-foreground tracking-tight leading-[1.05]">
                   La vérité du prix, <br className="hidden sm:block" />
                   <span className="italic text-primary">enfin certifiée.</span>

@@ -57,12 +57,12 @@ export default function AgentBriefing({
         // 2. Levier DPE
         if (isPassoire) {
             points.push({
-                icon: <ShieldAlert className="h-5 w-5 text-orange-500" />,
+                icon: <ShieldAlert className="h-5 w-5 text-warning" />,
                 title: "Bouclier Anti-DPE",
                 text: `Le statut passoire (DPE ${dpeLabel}) sera l'axe d'attaque #1 des acheteurs. Utilisez la "Décote Rénovation" déjà intégrée au rapport pour prouver que le prix net vendeur est DÉJÀ purgé de ce risque.`,
-                color: "text-orange-500",
-                bg: "bg-orange-500/10",
-                border: "border-orange-500/20"
+                color: "text-warning",
+                bg: "bg-warning/10",
+                border: "border-warning/20"
             });
         }
 
@@ -81,12 +81,12 @@ export default function AgentBriefing({
         // 4. Liquidité
         if (liquidityLabel.includes("Tendu")) {
             points.push({
-                icon: <Zap className="h-5 w-5 text-blue-500" />,
+                icon: <Zap className="h-5 w-5 text-info" />,
                 title: "Urgence Marché : Tendu",
                 text: `Le taux de rotation est extrêmement rapide (<12 mois). Créez le FOMO (Fear Of Missing Out) chez l'acquéreur en rappelant la rareté de l'offre sur ce micro-secteur.`,
-                color: "text-blue-500",
-                bg: "bg-blue-500/10",
-                border: "border-blue-500/20"
+                color: "text-info",
+                bg: "bg-info/10",
+                border: "border-info/20"
             });
         } else if (liquidityLabel.includes("Froid")) {
             points.push({

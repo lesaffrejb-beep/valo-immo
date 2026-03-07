@@ -55,6 +55,8 @@
   --color-surface-elevated: var(--surface-elevated);
   --color-success: var(--success);
   --color-warning: var(--warning);
+  --color-info: var(--info);
+  --color-destructive: var(--destructive);
 }
 
 /* ─── TrueSquare Light Theme (B2B / Banque) ─── */
@@ -101,8 +103,9 @@
   --brass-foreground: oklch(1 0 0);
   --surface: oklch(1 0 0);
   --surface-elevated: oklch(1 0 0);
-  --success: oklch(0.50 0.12 145);
-  --warning: oklch(0.60 0.14 65);
+  --success: oklch(0.60 0.15 150);
+  --warning: oklch(0.70 0.15 65);
+  --info: oklch(0.60 0.15 250);
 }
 
 @layer base {

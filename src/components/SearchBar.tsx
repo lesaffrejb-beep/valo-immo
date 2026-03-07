@@ -113,7 +113,7 @@ export default function SearchBar({ onSelect, isLoading = false }: SearchBarProp
                     flex items-center gap-3 rounded-2xl px-5 py-4
                     bg-card border-2 border-border
                     transition-all duration-200 shadow-sm
-                    focus-within:border-[var(--primary)] focus-within:shadow-[0_0_0_4px_oklch(0.35_0.12_260_/_10%)]
+                    focus-within:border-primary focus-within:shadow-[0_0_0_4px_var(--color-primary)]/10
                 `}
             >
                 {showSpinner ? (
@@ -166,7 +166,7 @@ export default function SearchBar({ onSelect, isLoading = false }: SearchBarProp
                     ref={listRef}
                     id="suggestion-list"
                     role="listbox"
-                    className="absolute z-50 top-full mt-2 w-full rounded-xl border border-border bg-card shadow-xl overflow-hidden animate-fade-in-up"
+                    className="absolute z-50 top-full mt-2 w-full rounded-xl border border-border bg-card shadow-xl overflow-hidden animate-fade-in-up text-left"
                 >
                     {suggestions.map((s, i) => (
                         <li
@@ -176,13 +176,13 @@ export default function SearchBar({ onSelect, isLoading = false }: SearchBarProp
                             aria-selected={i === activeIndex}
                             onMouseDown={() => handleSelect(s)}
                             className={`
-                                flex items-start gap-4 px-5 py-3 cursor-pointer transition-colors
+                                flex items-start px-5 py-3 cursor-pointer transition-colors
                                 ${i === activeIndex ? "bg-primary/5" : "hover:bg-[var(--muted)]/50"}
                                 ${i > 0 ? "border-t border-[var(--border)]" : ""}
                             `}
                         >
-                            <MapPin className="h-5 w-5 mt-0.5 text-[var(--primary)] shrink-0" />
-                            <div className="flex flex-col min-w-0">
+                            <div className="flex flex-col min-w-0 w-full pl-9 relative">
+                                <MapPin className="h-5 w-5 mt-0.5 text-[var(--primary)] absolute left-0 top-0" />
                                 <span className="text-base font-semibold text-[var(--foreground)] truncate">
                                     {formatSuggestionTitle(s)}
                                 </span>

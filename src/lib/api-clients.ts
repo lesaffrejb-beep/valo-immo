@@ -194,108 +194,29 @@ export async function fetchDvfMutations(params: {
     }
 
     const bbox = toBbox(params.lat, params.lon, params.dist || 500);
+    const url = `${DVF_CEREMA}?in_bbox=${bbox}&page_size=100`;
 
-    let lastError: unknown = null;
-
-    for (const baseUrl of DVF_ENDPOINTS) {
-        const url = `${baseUrl}?in_bbox=${bbox}&page_size=100`;
-
-        try {
-            const res = await fetchWithTimeout(url, 8000);
-            if (!res.ok) {
-                throw new Error(`[DVF] ${baseUrl} returned ${res.status}`);
-            }
-
-            const data = await res.json();
-            const features: Record<string, unknown>[] = data.features || [];
-
-            return features
-                .sort((a, b) => {
-                    const da = new Date(String((a.properties as Record<string, unknown> | undefined)?.datemut || "")).getTime();
-                    const db = new Date(String((b.properties as Record<string, unknown> | undefined)?.datemut || "")).getTime();
-                    return db - da;
-                })
-                .map(mapCeremaFeatureToMutation)
-                .filter((m): m is DvfMutation => m !== null);
-        } catch (err) {
-            lastError = err;
-            console.warn(`[DVF] endpoint failed: ${baseUrl}`, err);
+    try {
+        const res = await fetchWithTimeout(url, 8000);
+        if (!res.ok) {
+            throw new Error(`[DVF] ${DVF_CEREMA} returned ${res.status}`);
         }
 
         const data = await res.json();
-        // The Cerema geomutations endpoint returns GeoJSON FeatureCollection
         const features: Record<string, unknown>[] = data.features || [];
 
         return features
-            // Prioritize freshest transactions first before filtering & mapping
             .sort((a, b) => {
                 const da = new Date(String((a.properties as Record<string, unknown> | undefined)?.datemut || "")).getTime();
                 const db = new Date(String((b.properties as Record<string, unknown> | undefined)?.datemut || "")).getTime();
                 return db - da;
             })
-            .map((f) => {
-                const p = (f.properties || {}) as Record<string, unknown>;
-                const libnat = String(p.libnatmut || "");
-                // Only keep actual sales
-                if (libnat !== "Vente" && !libnat.includes("futur d'achèvement")) return null;
-
-                const valeur = Number(p.valeurfonc) || 0;
-                if (valeur <= 0) return null;
-
-                const codtypbien = p.codtypbien;
-                const codeTypeLocal = mapCodeTypLocal(String(codtypbien || "0"));
-
-                // Only residential or dependencies
-                if (codeTypeLocal > 3) return null;
-
-                const sbati = Number(p.sbati) || 0;
-                if (codeTypeLocal < 3 && sbati <= 0) return null;
-
-                // Extract coordinates from geometry centroid (Point or Polygon)
-                let lon = 0, lat = 0;
-                const geom = f.geometry as { type: string; coordinates: unknown[] } | null;
-                if (geom?.type === "Point") {
-                    lon = (geom.coordinates as number[])[0];
-                    lat = (geom.coordinates as number[])[1];
-                } else if (geom?.type === "Polygon") {
-                    const coords = (geom.coordinates as number[][][])[0];
-                    if (coords?.length > 0) {
-                        lon = coords.reduce((s, c) => s + c[0], 0) / coords.length;
-                        lat = coords.reduce((s, c) => s + c[1], 0) / coords.length;
-                    }
-                }
-
-                const codeInsee = Array.isArray(p.l_codinsee)
-                    ? (p.l_codinsee as string[])[0] || ""
-                    : String(p.l_codinsee || "");
-
-                return {
-                    id_mutation: String(p.idopendata || p.idmutinvar || ""),
-                    date_mutation: String(p.datemut || ""),
-                    nature_mutation: libnat,
-                    valeur_fonciere: valeur,
-                    code_postal: String(p.coddep || "") + "000", // approximation
-                    code_commune: codeInsee,
-                    nom_commune: "",
-                    code_type_local: codeTypeLocal,
-                    type_local: String(p.libtypbien || ""),
-                    surface_reelle_bati: sbati,
-                    nombre_pieces_principales: 0,
-                    surface_terrain: Number(p.sterr) || 0,
-                    adresse_nom_voie: "",
-                    adresse_numero: "",
-                    longitude: lon,
-                    latitude: lat,
-                } as DvfMutation;
-            })
+            .map(mapCeremaFeatureToMutation)
             .filter((m): m is DvfMutation => m !== null);
     } catch (err) {
         console.error("[DVF] Cerema API failed:", err);
         throw new Error("DVF_API_FAILED");
     }
-
-    console.error("[DVF] all endpoints failed", lastError);
-    throw new Error("DVF_API_FAILED");
 }
 
 /* ─── DPE — Performance Énergétique (ADEME) ─── */
