@@ -3,8 +3,8 @@
 -- ==========================================
 
 -- 1. EXTENSIONS REQUISES
--- L'extension PostGIS est essentielle pour le calcul spatial.
 CREATE EXTENSION IF NOT EXISTS postgis;
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
 -- 2. TABLES DE DONNÉES GÉOSPATIALES
 
@@ -25,49 +25,90 @@ CREATE TABLE IF NOT EXISTS data_dvf (
     surface_reelle_bati INT,
     nombre_pieces_principales INT,
     surface_terrain INT,
-    dpe_classe VARCHAR(1), -- Ex: 'A', 'E', 'F'
-    geom geometry(Point, 4326) -- Coordonnées GPS (WGS 84)
+    dpe_classe VARCHAR(1),
+    geom geometry(Point, 4326)
 );
 
 -- B. Table des zones PLUi (Plan Local d'Urbanisme intercommunal - Angers)
 CREATE TABLE IF NOT EXISTS geo_plui (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    libelle_zone VARCHAR(50) NOT NULL, -- Ex: 'UA', 'UB', 'A', 'N'
+    source_feature_id TEXT NOT NULL,
+    libelle_zone VARCHAR(50) NOT NULL,
     description TEXT,
     reglement_url TEXT,
-    geom geometry(Polygon, 4326)
+    commune VARCHAR(100),
+    geom geometry(MultiPolygon, 4326) NOT NULL,
+    inserted_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 -- C. Table des Isochrones (Transports & Commodités)
--- Permet de stocker les zones à 5, 10, 15 minutes à pied du Tramway C ou des écoles.
 CREATE TABLE IF NOT EXISTS geo_isochrones (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    type_poi VARCHAR(50) NOT NULL, -- Ex: 'tramway_c', 'ecole_primaire'
+    source_feature_id TEXT NOT NULL,
+    type_poi VARCHAR(50) NOT NULL,
     nom_poi VARCHAR(255),
-    temps_trajet_min INT, -- Ex: 5, 10
-    mode_transport VARCHAR(20), -- 'pieton', 'velo', 'voiture'
-    geom geometry(Polygon, 4326)
+    temps_trajet_min INT NOT NULL,
+    mode_transport VARCHAR(20) NOT NULL,
+    commune VARCHAR(100),
+    geom geometry(MultiPolygon, 4326) NOT NULL,
+    inserted_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    CONSTRAINT geo_isochrones_temps_check CHECK (temps_trajet_min > 0)
 );
 
 -- D. Table des nuisances (Bruit - Lden)
 CREATE TABLE IF NOT EXISTS geo_nuisances (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    type_nuisance VARCHAR(50), -- Ex: 'bruit_routier', 'bruit_ferroviaire'
-    niveau_bruit_lden_min INT, -- dB(A)
-    niveau_bruit_lden_max INT, -- dB(A)
-    geom geometry(Polygon, 4326)
+    source_feature_id TEXT NOT NULL,
+    type_nuisance VARCHAR(50),
+    niveau_bruit_lden_min INT,
+    niveau_bruit_lden_max INT,
+    commune VARCHAR(100),
+    geom geometry(MultiPolygon, 4326) NOT NULL,
+    inserted_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- 3. INDEX SPATIAUX (Crucial pour les performances)
+-- 3. CONTRAINTES D'UNICITÉ (UPSERT)
+CREATE UNIQUE INDEX IF NOT EXISTS uniq_geo_plui_source ON geo_plui (source_feature_id);
+CREATE UNIQUE INDEX IF NOT EXISTS uniq_geo_isochrones_source ON geo_isochrones (source_feature_id);
+CREATE UNIQUE INDEX IF NOT EXISTS uniq_geo_nuisances_source ON geo_nuisances (source_feature_id);
+
+-- 4. INDEX SPATIAUX
 CREATE INDEX IF NOT EXISTS idx_data_dvf_geom ON data_dvf USING GIST (geom);
 CREATE INDEX IF NOT EXISTS idx_geo_plui_geom ON geo_plui USING GIST (geom);
 CREATE INDEX IF NOT EXISTS idx_geo_isochrones_geom ON geo_isochrones USING GIST (geom);
 CREATE INDEX IF NOT EXISTS idx_geo_nuisances_geom ON geo_nuisances USING GIST (geom);
 
--- 4. FONCTION DE RECHERCHE GÉOSPATIALE (RPC)
--- Cette fonction sera appelable depuis Supabase (via supabase.rpc('get_parcel_features'))
--- Elle prend une position (lat, lng) et renvoie les caractéristiques de la zone.
+-- 5. TRIGGER updated_at
+CREATE OR REPLACE FUNCTION set_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = NOW();
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS trg_geo_plui_updated_at ON geo_plui;
+CREATE TRIGGER trg_geo_plui_updated_at
+BEFORE UPDATE ON geo_plui
+FOR EACH ROW
+EXECUTE FUNCTION set_updated_at();
+
+DROP TRIGGER IF EXISTS trg_geo_isochrones_updated_at ON geo_isochrones;
+CREATE TRIGGER trg_geo_isochrones_updated_at
+BEFORE UPDATE ON geo_isochrones
+FOR EACH ROW
+EXECUTE FUNCTION set_updated_at();
+
+DROP TRIGGER IF EXISTS trg_geo_nuisances_updated_at ON geo_nuisances;
+CREATE TRIGGER trg_geo_nuisances_updated_at
+BEFORE UPDATE ON geo_nuisances
+FOR EACH ROW
+EXECUTE FUNCTION set_updated_at();
+
+-- 6. FONCTION DE RECHERCHE GÉOSPATIALE (RPC)
 CREATE OR REPLACE FUNCTION get_parcel_features(lng DOUBLE PRECISION, lat DOUBLE PRECISION)
 RETURNS JSON AS $$
 DECLARE
@@ -77,37 +118,35 @@ DECLARE
     nuisance_noise_max INT;
     result JSON;
 BEGIN
-    -- Créer le point géométrique à partir des coordonnées
     point_geom := ST_SetSRID(ST_MakePoint(lng, lat), 4326);
 
-    -- Trouver la zone PLUi de la parcelle
-    SELECT libelle_zone INTO zone_plui
-    FROM geo_plui
-    WHERE ST_Intersects(geom, point_geom)
+    SELECT p.libelle_zone INTO zone_plui
+    FROM geo_plui p
+    WHERE ST_Intersects(p.geom, point_geom)
     LIMIT 1;
 
-    -- Vérifier si la parcelle est dans un isochrone Tramway (< 10 min à pied)
     SELECT EXISTS (
-        SELECT 1 FROM geo_isochrones
-        WHERE type_poi = 'tramway_c' AND temps_trajet_min <= 10
-        AND ST_Intersects(geom, point_geom)
+        SELECT 1
+        FROM geo_isochrones i
+        WHERE i.type_poi IN ('tramway_b', 'tramway_c', 'tram_stop')
+          AND i.temps_trajet_min <= 10
+          AND ST_Intersects(i.geom, point_geom)
     ) INTO is_near_tram;
 
-    -- Récupérer la pire nuisance sonore (si existante)
-    SELECT MAX(niveau_bruit_lden_max) INTO nuisance_noise_max
-    FROM geo_nuisances
-    WHERE ST_Intersects(geom, point_geom);
+    SELECT MAX(n.niveau_bruit_lden_max) INTO nuisance_noise_max
+    FROM geo_nuisances n
+    WHERE ST_Intersects(n.geom, point_geom);
 
-    -- Construire le résultat en JSON pour l'API / Frontend
     result := json_build_object(
         'zone_plui', zone_plui,
         'proximite_tram_10m', COALESCE(is_near_tram, false),
-        'nuisance_sonore_db', nuisance_noise_max
+        'nuisance_sonore_db', nuisance_noise_max,
+        'in_angers_dataset', zone_plui IS NOT NULL OR nuisance_noise_max IS NOT NULL
     );
 
     RETURN result;
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql STABLE;
 
--- Commentaires:
--- Ce fichier peut être exécuté directement dans l'éditeur SQL de Supabase.
+COMMENT ON FUNCTION get_parcel_features IS
+'Retourne un contexte hyper-local (PLUi, proximité tram, nuisance bruit) pour un point WGS84.';

@@ -1,116 +1,138 @@
 -- =========================================================================================
 -- TUTORIEL D'INGESTION DES DONNÉES GÉOSPATIALES (ANGERS LOIRE MÉTROPOLE)
 -- =========================================================================================
--- 
--- UTILISATION :
--- Ces requêtes servent de base pour alimenter les tables PostGIS (geo_plui, geo_isochrones, geo_nuisances) 
--- créées dans `schema.sql`. Elles sont destinées à être copiées-collées dans l'Éditeur SQL de Supabase,
--- ou à être appelées par vos workflows n8n via un nœud "Postgres" ou l'API REST de Supabase.
--- 
--- RAPPEL DU CONTEXTE "HYPER-LOCAL 49" :
--- Étant donné la stratégie locale de TrueSquare V6, vous ne chargerez ici QUE les données du Maine-et-Loire.
--- Vous pouvez sourcer ces données depuis le portail Open Data d'Angers Loire Métropole :
--- https://data.angers.fr/
---
--- =========================================================================================
-
+-- Objectif: fournir des blocs SQL immédiatement copiable/collable dans Supabase SQL Editor.
+-- Prérequis: avoir exécuté `database/schema.sql`.
 
 -- -----------------------------------------------------------------------------------------
--- 1. EXEMPLE : INGESTION D'UN ZONAGE PLUi (Plan Local d'Urbanisme Intercommunal)
+-- 0) UTILITAIRES SQL
 -- -----------------------------------------------------------------------------------------
--- Procédure si vous insérez manuellement un bout de GeoJSON ou si un workflow n8n boucle sur les entités.
--- n8n mapping suggéré :
--- zone_name = {{$json.properties.libelle}}
--- geom = {{$json.geometry}}
 
-INSERT INTO geo_plui (zone_name, description, geom)
+-- Convertit n'importe quelle géométrie GeoJSON en MultiPolygon SRID 4326.
+CREATE OR REPLACE FUNCTION to_multipolygon_4326(geojson_input JSONB)
+RETURNS geometry(MultiPolygon, 4326) AS $$
+DECLARE
+  geom_4326 geometry;
+BEGIN
+  geom_4326 := ST_SetSRID(ST_GeomFromGeoJSON(geojson_input::text), 4326);
+  IF GeometryType(geom_4326) = 'POLYGON' THEN
+    RETURN ST_Multi(geom_4326)::geometry(MultiPolygon, 4326);
+  END IF;
+  RETURN geom_4326::geometry(MultiPolygon, 4326);
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
+-- -----------------------------------------------------------------------------------------
+-- 1) UPSERT PLUI (1 feature)
+-- -----------------------------------------------------------------------------------------
+-- À remplir depuis n8n (HTTP -> Set -> Postgres) ou manuellement.
+
+INSERT INTO geo_plui (
+  source_feature_id,
+  libelle_zone,
+  description,
+  reglement_url,
+  commune,
+  geom
+)
 VALUES (
-    'Ubc', -- Exemple : Zone urbaine mixte
-    'Zone urbaine mixte à vocation d''habitat, d''activités et de commerces',
-    -- On convertit le GeoJSON (texte strict) en géométrie PostGIS SRID 4326 (WGS 84)
-    ST_SetSRID(ST_GeomFromGeoJSON('{
-        "type": "Polygon",
-        "coordinates": [
-            [
-                [-0.560123, 47.472134],
-                [-0.559123, 47.472134],
-                [-0.559123, 47.471134],
-                [-0.560123, 47.471134],
-                [-0.560123, 47.472134]
-            ]
-        ]
-    }'), 4326)
-);
-
+  'plui_angers_0001',
+  'UA',
+  'Zone urbaine centre',
+  'https://data.angers.fr/',
+  'Angers',
+  to_multipolygon_4326('{"type":"Polygon","coordinates":[[[-0.560123,47.472134],[-0.559123,47.472134],[-0.559123,47.471134],[-0.560123,47.471134],[-0.560123,47.472134]]]}')
+)
+ON CONFLICT (source_feature_id)
+DO UPDATE SET
+  libelle_zone = EXCLUDED.libelle_zone,
+  description = EXCLUDED.description,
+  reglement_url = EXCLUDED.reglement_url,
+  commune = EXCLUDED.commune,
+  geom = EXCLUDED.geom;
 
 -- -----------------------------------------------------------------------------------------
--- 2. EXEMPLE : INGESTION D'ISOCHRONES (Tramway, Écoles)
+-- 2) UPSERT ISOCHRONE (1 feature)
 -- -----------------------------------------------------------------------------------------
--- Ici, on stocke la zone d'accessibilité à 5-10min à pied d'un point d'intérêt.
--- Ces données augmentent le Score de Quartier (Neighborhood Score) en temps réel.
 
-INSERT INTO geo_isochrones (poi_type, travel_time_mins, transport_mode, geom)
+INSERT INTO geo_isochrones (
+  source_feature_id,
+  type_poi,
+  nom_poi,
+  temps_trajet_min,
+  mode_transport,
+  commune,
+  geom
+)
 VALUES (
-    'tram_stop', 
-    5, -- 5 minutes
-    'walking', -- à pied
-    ST_SetSRID(ST_GeomFromGeoJSON('{
-        "type": "Polygon",
-        "coordinates": [
-            [
-                [-0.550123, 47.475134],
-                [-0.549123, 47.475134],
-                [-0.549123, 47.474134],
-                [-0.550123, 47.474134],
-                [-0.550123, 47.475134]
-            ]
-        ]
-    }'), 4326)
-);
-
+  'iso_tram_c_5m_0001',
+  'tramway_c',
+  'Station Foch-Maison Bleue',
+  5,
+  'pieton',
+  'Angers',
+  to_multipolygon_4326('{"type":"Polygon","coordinates":[[[-0.550123,47.475134],[-0.549123,47.475134],[-0.549123,47.474134],[-0.550123,47.474134],[-0.550123,47.475134]]]}')
+)
+ON CONFLICT (source_feature_id)
+DO UPDATE SET
+  type_poi = EXCLUDED.type_poi,
+  nom_poi = EXCLUDED.nom_poi,
+  temps_trajet_min = EXCLUDED.temps_trajet_min,
+  mode_transport = EXCLUDED.mode_transport,
+  commune = EXCLUDED.commune,
+  geom = EXCLUDED.geom;
 
 -- -----------------------------------------------------------------------------------------
--- 3. EXEMPLE : INGESTION CARTE DU BRUIT (Nuisances)
+-- 3) UPSERT NUISANCE BRUIT (1 feature)
 -- -----------------------------------------------------------------------------------------
--- Pour identifier les parcelles impactées par des décibels > 65dB (Lden) sur Angers.
 
-INSERT INTO geo_nuisances (source_type, noise_level_db, geom)
+INSERT INTO geo_nuisances (
+  source_feature_id,
+  type_nuisance,
+  niveau_bruit_lden_min,
+  niveau_bruit_lden_max,
+  commune,
+  geom
+)
 VALUES (
-    'road', -- Type de trafic (routier)
-    '65-70', -- Tranche de décibels
-    ST_SetSRID(ST_GeomFromGeoJSON('{
-        "type": "Polygon",
-        "coordinates": [
-            [
-                [-0.570123, 47.482134],
-                [-0.569123, 47.482134],
-                [-0.569123, 47.481134],
-                [-0.570123, 47.481134],
-                [-0.570123, 47.482134]
-            ]
-        ]
-    }'), 4326)
-);
+  'noise_road_65_70_0001',
+  'bruit_routier',
+  65,
+  70,
+  'Angers',
+  to_multipolygon_4326('{"type":"Polygon","coordinates":[[[-0.570123,47.482134],[-0.569123,47.482134],[-0.569123,47.481134],[-0.570123,47.481134],[-0.570123,47.482134]]]}')
+)
+ON CONFLICT (source_feature_id)
+DO UPDATE SET
+  type_nuisance = EXCLUDED.type_nuisance,
+  niveau_bruit_lden_min = EXCLUDED.niveau_bruit_lden_min,
+  niveau_bruit_lden_max = EXCLUDED.niveau_bruit_lden_max,
+  commune = EXCLUDED.commune,
+  geom = EXCLUDED.geom;
 
+-- -----------------------------------------------------------------------------------------
+-- 4) Vérifications rapides (copier/coller)
+-- -----------------------------------------------------------------------------------------
+SELECT 'geo_plui' AS table_name, COUNT(*) AS rows_count FROM geo_plui
+UNION ALL
+SELECT 'geo_isochrones', COUNT(*) FROM geo_isochrones
+UNION ALL
+SELECT 'geo_nuisances', COUNT(*) FROM geo_nuisances;
 
--- =========================================================================================
--- OPTIONNEL : BULK INSERT (UPSERT) VIA API N8N (SUPABASE BULK ENDPOINT)
--- =========================================================================================
--- Plutôt que de faire 10 000 requêtes INSERT, la meilleure pratique avec n8n est d'utiliser 
--- le endpoint REST de Supabase en appelant directement l'API d'insertion multiple :
---
--- MÉTHODE : POST
--- URL : https://[votre_projet].supabase.co/rest/v1/geo_plui
--- HEADERS :
---   apikey: [votre_anon_key ou service_role_key]
---   Authorization: Bearer [votre_anon_key ou service_role_key]
---   Content-Type: application/json
---   Prefer: return=minimal
---
--- BODY JSON (Array d'objets) :
--- [
---   { "zone_name": "Ubc", "description": "...", "geom": "...(ici utiliser ST_AsGeoJSON si besoin en select, mais pour l'insert pur en REST, Supabase PostGIS accepte le format WKT (Well-Known Text) ou directement le GeoJSON comme Feature si on setup un trigger/cast spécifique)" },
---   { ... }
--- ]
--- NOTE IMPORTANTE: Par API REST native, Supabase attend du GeoJSON sous forme d'un objet JSON si la colonne est géométrique, ou du WKT string ('POLYGON((...))'). Le WKT est souvent plus facile à générer côté n8n.
+SELECT get_parcel_features(-0.55, 47.47);
+
+-- -----------------------------------------------------------------------------------------
+-- 5) Modèle de payload n8n prêt à mapper
+-- -----------------------------------------------------------------------------------------
+-- Dans n8n, mappez chaque feature vers ces clés (Set Node):
+-- {
+--   "source_feature_id": "={{$json.id}}",
+--   "libelle_zone": "={{$json.properties.libelle_zone || $json.properties.zone}}",
+--   "description": "={{$json.properties.description || ''}}",
+--   "reglement_url": "={{$json.properties.reglement_url || ''}}",
+--   "commune": "={{$json.properties.commune || 'Angers'}}",
+--   "geometry": "={{JSON.stringify($json.geometry)}}"
+-- }
+-- Ensuite dans Postgres Node utilisez le SQL d'UPSERT PLUI en remplaçant les valeurs par
+-- :source_feature_id, :libelle_zone, etc. et to_multipolygon_4326(:geometry::jsonb)
 -- =========================================================================================

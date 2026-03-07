@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { geocodeAddress, fetchDvfMutations, fetchDpe } from "@/lib/api-clients";
 import { processTransactions, computeSynthese, computeShapMock } from "@/lib/calculation-engine";
 import { computeNeighborhoodScore } from "@/lib/neighborhood";
+import { fetchParcelFeatures } from "@/lib/hyperlocal";
 import type { EstimationResult } from "@/lib/types";
 import { z } from "zod";
 
@@ -24,7 +25,7 @@ export async function POST(request: Request) {
         );
     }
 
-    const { adresse, typeBien, surface, dpe: wizardDpe, pptVote } = parsed.data;
+    const { adresse, dpe: wizardDpe } = parsed.data;
 
     try {
         // ─── Step 1: Geocode ───
@@ -68,14 +69,17 @@ export async function POST(request: Request) {
                 )[0]
                 : null;
 
-        if (wizardDpe) {
-            dpe = { ...dpe, classe_estimation_dpe: wizardDpe } as any;
+        if (wizardDpe && dpe) {
+            dpe = { ...dpe, etiquette_dpe: wizardDpe };
         }
 
         // ─── Step 4: Process & Calculate ───
         const transactions = processTransactions(mutations, dpe);
         const synthese = computeSynthese(transactions, dpe);
-        const neighborhood = await computeNeighborhoodScore({ lat: ban.lat, lon: ban.lon });
+        const [neighborhood, geoContext] = await Promise.all([
+            computeNeighborhoodScore({ lat: ban.lat, lon: ban.lon }),
+            fetchParcelFeatures({ lat: ban.lat, lng: ban.lon }),
+        ]);
         const shap_analysis = computeShapMock(synthese, parsed.data);
 
         const warnings: string[] = [];
@@ -93,6 +97,7 @@ export async function POST(request: Request) {
             transactions,
             synthese,
             neighborhood: neighborhood || undefined,
+            geo_context: geoContext || undefined,
             shap_analysis,
             warnings: warnings.length > 0 ? warnings : undefined,
         };
