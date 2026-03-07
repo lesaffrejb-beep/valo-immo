@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { geocodeAddress, fetchDvfMutations, fetchDpe } from "@/lib/api-clients";
 import { processTransactions, computeSynthese } from "@/lib/calculation-engine";
+import { computeNeighborhoodScore } from "@/lib/neighborhood";
 import type { EstimationResult } from "@/lib/types";
 import { z } from "zod";
 
@@ -66,6 +67,7 @@ export async function GET(request: Request) {
         // ─── Step 4: Process & Calculate ───
         const transactions = processTransactions(mutations, dpe);
         const synthese = computeSynthese(transactions, dpe);
+        const neighborhood = await computeNeighborhoodScore({ lat: ban.lat, lon: ban.lon });
 
         const warnings: string[] = [];
 
@@ -81,6 +83,7 @@ export async function GET(request: Request) {
             dpe,
             transactions,
             synthese,
+            neighborhood: neighborhood || undefined,
             warnings: warnings.length > 0 ? warnings : undefined,
         };
 

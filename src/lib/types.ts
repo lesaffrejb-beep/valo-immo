@@ -87,7 +87,33 @@ export interface EstimationResult {
             has_dpe: boolean;
         };
     };
+    neighborhood?: NeighborhoodScore;
     warnings?: string[];
+}
+
+export interface NeighborhoodAmenity {
+    category: "transport" | "schools" | "food";
+    label: string;
+    distance_m: number;
+}
+
+export interface NeighborhoodCategoryScore {
+    score: number; // 0-10
+    within_5_min: number;
+    within_10_min: number;
+    nearest_m: number | null;
+}
+
+export interface NeighborhoodScore {
+    global_score: number; // 0-10
+    walk_radius_m: number;
+    generated_at: string;
+    categories: {
+        transport: NeighborhoodCategoryScore;
+        schools: NeighborhoodCategoryScore;
+        food: NeighborhoodCategoryScore;
+    };
+    top_amenities: NeighborhoodAmenity[];
 }
 
 /* ─── API Response Wrappers ─── */

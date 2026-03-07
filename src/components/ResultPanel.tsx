@@ -7,6 +7,7 @@ import SyntheseCard from "./SyntheseCard";
 import { computeSynthese } from "@/lib/calculation-engine";
 import dynamic from "next/dynamic";
 import DossierActions from "./DossierActions";
+import NeighborhoodScoreCard from "./NeighborhoodScoreCard";
 
 const MapWidget = dynamic(() => import("./MapWidget"), {
     ssr: false,
@@ -69,6 +70,14 @@ export default function ResultPanel({ result }: { result: EstimationResult }) {
             />
 
             <DossierActions result={computedResult} />
+
+            {result.neighborhood ? (
+                <NeighborhoodScoreCard neighborhood={result.neighborhood} />
+            ) : (
+                <div className="rounded-2xl border border-amber-200 bg-amber-50/70 px-5 py-4 text-amber-900">
+                    <p className="text-sm font-medium">Score de quartier indisponible pour cette estimation (source isochrone momentanément indisponible).</p>
+                </div>
+            )}
 
             {/* Cadastre Intégré */}
             <MapWidget

@@ -15,7 +15,7 @@ TrueSquare est une PropTech B2B qui redonne le pouvoir à l'agent immobilier. En
 - **Scoring de Liquidité (Style Microsoft) :** Analyse de la rotation du parc immobilier pour statuer sur la tension du marché local et le délai de vente.
 - **Ajustements Hédonistes :** L'agent sculpte le prix en modifiant dynamiquement l'état du bien, les extérieurs et la vue.
 - **Rénovation Énergétique :** Détection d'un DPE Passoire (E, F ou G) et application automatique d'une décote travaux chiffrée.
-- **Micro-Marché & Isochrones :** Analyse de la proximité des commodités (écoles, transports) et calcul des pondérations d'étage pour les appartements (À venir).
+- **Micro-Marché & Isochrones :** Score de quartier dynamique sur 10 (transports, écoles, commerces alimentaires) avec points d'appui visite prêts à pitcher en rendez-vous.
 
 ## 🛠 Stack Technique
 
@@ -102,6 +102,20 @@ En pratique : TrueSquare n'est pas un gadget d'estimation. C'est un **système d
 - Dossier partageable (expiration)
 - Pipeline directeur (portefeuille statuts)
 
+### Nouveau module livré : Score de Quartier (Isochrone)
+
+**Pourquoi c'est stratégique (vision Directeur d'Agence)**
+- **Urgence marché :** les vendeurs et acquéreurs arbitrent aujourd'hui la valeur sur le confort de vie réel (mobilité, écoles, commerces), pas seulement sur le m².
+- **Impact business :** l'agent arrive en visite avec des preuves concrètes de desserte pour accélérer la décision et réduire les objections.
+- **Différenciation :** discours instantané “data + terrain” rare chez les estimateurs classiques centrés uniquement sur l'historique DVF.
+
+**Ce qui a été implémenté**
+- Calcul backend d'un `global_score` /10 via Overpass (OpenStreetMap) sur un rayon piéton de 1 200 m.
+- Sous-scores lisibles par catégorie : `transport`, `schools`, `food` (0–10) + densité à 5 et 10 minutes à pied + distance du point le plus proche.
+- “Top amenities” (5 POI les plus proches) pour préparer un argumentaire de visite concret.
+- Exposition du score directement dans la réponse `/api/estimate` pour garantir la cohérence front/back.
+- Carte de restitution UI dédiée dans le flux principal de résultats (sans surcharge), avec fallback élégant si la source est indisponible.
+
 ### Surfaces fonctionnelles principales
 - `src/app/page.tsx` : expérience agent (recherche + estimation).
 - `src/components/SyntheseCard.tsx` : moteur d'argumentaire visuel premium.
@@ -109,6 +123,8 @@ En pratique : TrueSquare n'est pas un gadget d'estimation. C'est un **système d
 - `src/app/agence/page.tsx` : cockpit directeur (KPIs + suivi statuts).
 - `src/app/api/portfolio/*` : API portefeuille agence (GET/POST/PATCH).
 - `src/lib/portfolio.ts` : persistance JSON locale du portefeuille.
+- `src/lib/neighborhood.ts` : moteur isochrone quartier (Overpass OSM, scoring 0–10).
+- `src/components/NeighborhoodScoreCard.tsx` : bloc UI “Score de Quartier” intégré à l'expérience agent.
 
 ### Règle d'or d'évolution
 Toute nouvelle fonctionnalité doit répondre à :

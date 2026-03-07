@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
@@ -47,16 +47,9 @@ function ChangeView({ center }: { center: [number, number] }) {
 }
 
 export default function MapWidget({ result, excludedIds, onToggleExclusion }: { result: EstimationResult, excludedIds?: Set<string>, onToggleExclusion?: (id: string) => void }) {
-    const [mounted, setMounted] = useState(false);
-
-    useEffect(() => {
-        setMounted(true);
-        return () => setMounted(false);
-    }, []);
-
     const targetCenter: [number, number] = [result.ban.lat, result.ban.lon];
 
-    if (!mounted) {
+    if (typeof window === "undefined") {
         return (
             <div className="w-full h-[400px] rounded-2xl bg-muted/30 animate-pulse border border-border flex items-center justify-center">
                 <p className="text-sm font-medium text-muted-foreground">Chargement de la carte...</p>
