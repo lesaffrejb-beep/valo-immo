@@ -1,14 +1,16 @@
 import { randomUUID } from "crypto";
+import type { EstimationResult } from "@/lib/types";
+
 export interface SharedDossier {
   token: string;
   createdAt: string;
   expiresAt: string;
-  dossier: unknown;
+  dossier: EstimationResult;
 }
 
 const store = new Map<string, SharedDossier>();
 
-export function createSharedDossier(dossier: unknown, ttlHours: number) {
+export function createSharedDossier(dossier: EstimationResult, ttlHours: number) {
   const safeTtl = Number.isFinite(ttlHours) ? Math.min(168, Math.max(1, Math.round(ttlHours))) : 72;
   const now = new Date();
   const expiresAt = new Date(now.getTime() + safeTtl * 60 * 60 * 1000);

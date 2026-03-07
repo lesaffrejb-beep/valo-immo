@@ -5,7 +5,6 @@ import { Copy, FolderHeart, Share2, ShieldAlert } from "lucide-react";
 import type { EstimationResult } from "@/lib/types";
 
 const LOCAL_KEY = "true-square:dossiers";
-const AGENCE_ID = "default";
 
 type LocalDossier = {
   id: string;
@@ -38,42 +37,8 @@ export default function DossierActions({ result }: { result: EstimationResult })
 
     const next = [summary, ...current.filter((item) => item.id !== summary.id)].slice(0, 30);
     window.localStorage.setItem(LOCAL_KEY, JSON.stringify(next));
-  };
 
-  const savePortfolio = async () => {
-    const prixEstime = Math.round(result.synthese.prix_m2_corrige_median * result.synthese.surface_reference);
-
-    const response = await fetch("/api/portfolio", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        agenceId: AGENCE_ID,
-        adresse: result.adresse,
-        prixEstime,
-        confiance: result.synthese.confiance,
-        status: "estimation",
-      }),
-    });
-
-    const json = await response.json();
-    if (!json.success) {
-      throw new Error(json.error || "Erreur de sauvegarde portefeuille.");
-    }
-  };
-
-  const handleSave = async () => {
-    setIsBusy(true);
-    setMessage("");
-
-    try {
-      saveLocal();
-      await savePortfolio();
-      setMessage("Dossier enregistré dans le CRM local et le portefeuille Directeur.");
-    } catch {
-      setMessage("Sauvegarde locale OK, mais échec côté portefeuille serveur.");
-    } finally {
-      setIsBusy(false);
-    }
+    setMessage("Dossier sauvegardé dans le CRM local de l'agence.");
   };
 
   const createShareLink = async () => {
@@ -109,18 +74,17 @@ export default function DossierActions({ result }: { result: EstimationResult })
         <div>
           <h3 className="text-base font-bold text-[var(--foreground)]">CRM & Partage rapide</h3>
           <p className="text-sm text-[var(--muted-foreground)] mt-1">
-            Sauvegardez la synthèse, injectez-la dans le portefeuille directeur, puis partagez un lien expirant.
+            Sauvegardez la synthèse en local et créez un lien expirant pour maintenir l&apos;urgence commerciale.
           </p>
         </div>
       </div>
 
       <div className="flex flex-wrap gap-3">
         <button
-          onClick={handleSave}
-          disabled={isBusy}
-          className="inline-flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-semibold hover:border-primary/40 disabled:opacity-60"
+          onClick={saveLocal}
+          className="inline-flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-semibold hover:border-primary/40"
         >
-          <FolderHeart className="h-4 w-4" /> Enregistrer au portefeuille
+          <FolderHeart className="h-4 w-4" /> Sauvegarder le dossier
         </button>
         <button
           onClick={createShareLink}

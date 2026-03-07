@@ -2,24 +2,8 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createSharedDossier } from "@/lib/dossiers";
 
-const estimationSchema = z.object({
-  adresse: z.string().min(5).max(180),
-  ban: z.object({
-    id: z.string().min(1),
-    label: z.string().min(3),
-  }).passthrough(),
-  dpe: z.unknown().nullable(),
-  transactions: z.array(z.unknown()),
-  synthese: z.object({
-    prix_m2_corrige_median: z.number().nonnegative(),
-    surface_reference: z.number().nonnegative(),
-    confiance: z.number().min(0).max(1),
-  }).passthrough(),
-  warnings: z.array(z.string()).optional(),
-}).passthrough();
-
 const payloadSchema = z.object({
-  dossier: estimationSchema,
+  dossier: z.any(),
   ttlHours: z.number().min(1).max(168).default(72),
 });
 
