@@ -83,6 +83,36 @@ export interface ShapAnalysis {
     explications_shap: ShapValue[];
 }
 
+export type LiveListingSource = "leboncoin" | "seloger";
+
+export interface LiveListing {
+    id: string;
+    source: LiveListingSource;
+    title: string;
+    url: string;
+    price: number;
+    surface_m2: number | null;
+    rooms: number | null;
+    city: string | null;
+    latitude: number | null;
+    longitude: number | null;
+    distance_m: number | null;
+    price_m2: number | null;
+    published_at: string | null;
+}
+
+export interface LiveMarketSnapshot {
+    generated_at: string;
+    radius_m: number;
+    listings: LiveListing[];
+    summary: {
+        count: number;
+        median_price: number | null;
+        median_price_m2: number | null;
+        by_source: Record<LiveListingSource, number>;
+    };
+}
+
 export interface EstimationResult {
     adresse: string;
     ban: BanResult;
@@ -103,6 +133,7 @@ export interface EstimationResult {
     };
     neighborhood?: NeighborhoodScore;
     geo_context?: GeoContext;
+    live_market?: LiveMarketSnapshot;
     warnings?: string[];
     shap_analysis?: ShapAnalysis;
 }

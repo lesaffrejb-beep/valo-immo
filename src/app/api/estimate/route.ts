@@ -3,6 +3,7 @@ import { geocodeAddress, fetchDvfMutations, fetchDpe } from "@/lib/api-clients";
 import { processTransactions, computeSynthese, computeShapMock } from "@/lib/calculation-engine";
 import { computeNeighborhoodScore } from "@/lib/neighborhood";
 import { fetchParcelFeatures } from "@/lib/hyperlocal";
+import { fetchLiveMarketSnapshot } from "@/lib/live-market";
 import type { EstimationResult } from "@/lib/types";
 import { z } from "zod";
 
@@ -76,9 +77,10 @@ export async function POST(request: Request) {
         // ─── Step 4: Process & Calculate ───
         const transactions = processTransactions(mutations, dpe);
         const synthese = computeSynthese(transactions, dpe);
-        const [neighborhood, geoContext] = await Promise.all([
+        const [neighborhood, geoContext, liveMarket] = await Promise.all([
             computeNeighborhoodScore({ lat: ban.lat, lon: ban.lon }),
             fetchParcelFeatures({ lat: ban.lat, lng: ban.lon }),
+            fetchLiveMarketSnapshot({ ban }),
         ]);
         const shap_analysis = computeShapMock(synthese, parsed.data);
 
@@ -90,6 +92,9 @@ export async function POST(request: Request) {
             warnings.push("Aucune transaction DVF exploitable n'a été trouvée dans ce périmètre. Élargissez la zone ou vérifiez l'adresse.");
         }
 
+
+        warnings.push("Module Live Scraping concurrents (beta) activé : annonces à vendre LeBonCoin/SeLoger affichées pour le pitch de positionnement en rendez-vous.");
+
         const result: EstimationResult = {
             adresse: ban.label,
             ban,
@@ -98,6 +103,7 @@ export async function POST(request: Request) {
             synthese,
             neighborhood: neighborhood || undefined,
             geo_context: geoContext || undefined,
+            live_market: liveMarket,
             shap_analysis,
             warnings: warnings.length > 0 ? warnings : undefined,
         };
